@@ -11,7 +11,7 @@
 void parse_input_args(int argc, char **argv, int &jmax, int &imax, int &nprocy, int &nprocx, int &nhalo);
 void Cartesian_print(double **x, int jmax, int imax, int nhalo, int nprocy, int nprocx);
 void halo_update(double **x, int nhalo, int jsize, int isize, int nleft, int nrght, int nbot, int ntop);
-void haloupdate_test(int nhalo, int jsize, int isize, int joffset, int ioffset, int nleft, int nrght, int nbot, int ntop, int jmax, int imax, int nprocy, int nprocx);
+void haloupdate_test(int nhalo, int jsize, int isize, int nleft, int nrght, int nbot, int ntop, int jmax, int imax, int nprocy, int nprocx);
 
 int main(int argc, char *argv[])
 {
@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
    // This offsets the array addressing so that the real part of the array is from 0,0 to jsize,isize
    int joffset = nhalo, ioffset = nhalo;
 
-   haloupdate_test(nhalo, jsize, isize, joffset, ioffset, nleft, nrght, nbot, ntop, jmax, imax, nprocy, nprocx);
+   haloupdate_test(nhalo, jsize, isize, nleft, nrght, nbot, ntop, jmax, imax, nprocy, nprocx);
       
    double** xtmp;
    double** x    = malloc2D(jsize+2*nhalo, isize+2*nhalo, joffset, ioffset);
@@ -78,8 +78,8 @@ int main(int argc, char *argv[])
    for (int iter = 0; iter < 1000; iter++){
       cpu_timer_start(&tstart_stencil);
 
-      for (int j = 0; j < jmax; j++){
-         for (int i = 0; i < imax; i++){
+      for (int j = 0; j < jsize; j++){
+         for (int i = 0; i < isize; i++){
             xnew[j][i] = ( x[j][i] + x[j][i-1] + x[j][i+1] + x[j-1][i] + x[j+1][i] )/5.0;
          }
       }
@@ -189,10 +189,12 @@ void halo_update(double **x, int nhalo, int jsize, int isize, int nleft, int nrg
    }
 }
 
-void haloupdate_test(int nhalo, int jsize, int isize, int joffset, int ioffset, int nleft, int nrght, int nbot, int ntop, int jmax, int imax, int nprocy, int nprocx)
+void haloupdate_test(int nhalo, int jsize, int isize, int nleft, int nrght, int nbot, int ntop, int jmax, int imax, int nprocy, int nprocx)
 {
    int rank;
    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+   int joffset = nhalo;
+   int ioffset = nhalo;
    double** x = malloc2D(jsize+2*nhalo, isize+2*nhalo, joffset, ioffset);
 
    if (jsize > 12 || isize > 12) return;
