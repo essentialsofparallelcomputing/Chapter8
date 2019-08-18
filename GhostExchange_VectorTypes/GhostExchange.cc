@@ -16,6 +16,8 @@ void ghostcell_update(double **x, int nhalo, int corners, int jsize, int isize,
 void haloupdate_test(int nhalo, int corners, int jsize, int isize, int nleft, int nrght, int nbot, int ntop,
       int jmax, int imax, int nprocy, int nprocx, MPI_Datatype cart_col, MPI_Datatype cart_row);
 
+double boundarycondition_time=0.0, ghostcell_time=0.0;
+
 int main(int argc, char *argv[])
 {
    MPI_Init(&argc, &argv);
@@ -31,10 +33,9 @@ int main(int argc, char *argv[])
 
    parse_input_args(argc, argv, jmax, imax, nprocy, nprocx, nhalo, corners);
  
-   struct timespec tstart_init, tstart_stencil, tstart_boundarycondition, tstart_ghostcell, tstart_total;
-   double init_time, stencil_time=0.0, boundarycondition_time=0.0, ghostcell_time=0.0, total_time;
+   struct timespec tstart_stencil, tstart_total;
+   double stencil_time=0.0, total_time;
    cpu_timer_start(&tstart_total);
-   cpu_timer_start(&tstart_init);
 
    int xcoord = rank%nprocx;
    int ycoord = rank/nprocx;
@@ -66,11 +67,19 @@ int main(int argc, char *argv[])
     * conditions. Halos refer to both the ghost cells and the boundary halo cells.
     */
    haloupdate_test(nhalo, corners, jsize, isize, nleft, nrght, nbot, ntop, jmax, imax, nprocy, nprocx, cart_col, cart_row);
-      
+
    double** xtmp;
    // This offsets the array addressing so that the real part of the array is from 0,0 to jsize,isize
    double** x    = malloc2D(jsize+2*nhalo, isize+2*nhalo, nhalo, nhalo);
    double** xnew = malloc2D(jsize+2*nhalo, isize+2*nhalo, nhalo, nhalo);
+
+   if (! corners) { // need to initialize when not doing corners so there is no uninitialized memory
+      for (int j = -nhalo; j < jsize+nhalo; j++){
+         for (int i = -nhalo; i < isize+nhalo; i++){
+            x[j][i] = 0.0;
+         }
+      }
+   }
 
    for (int j = 0; j < jsize; j++){
       for (int i = 0; i < isize; i++){
@@ -89,8 +98,6 @@ int main(int argc, char *argv[])
    boundarycondition_update(x, nhalo, jsize, isize, nleft, nrght, nbot, ntop);
    ghostcell_update(x, nhalo, corners, jsize, isize, nleft, nrght, nbot, ntop, cart_col, cart_row);
 
-   init_time = cpu_timer_stop(tstart_init);
-
    for (int iter = 0; iter < 1000; iter++){
       cpu_timer_start(&tstart_stencil);
 
@@ -104,16 +111,8 @@ int main(int argc, char *argv[])
 
       stencil_time += cpu_timer_stop(tstart_stencil);
 
-      cpu_timer_start(&tstart_boundarycondition);
-
       boundarycondition_update(x, nhalo, jsize, isize, nleft, nrght, nbot, ntop);
-
-      boundarycondition_time += cpu_timer_stop(tstart_boundarycondition);
-      cpu_timer_start(&tstart_ghostcell);
-
       ghostcell_update(x, nhalo, corners, jsize, isize, nleft, nrght, nbot, ntop, cart_col, cart_row);
-
-      ghostcell_time += cpu_timer_stop(tstart_ghostcell);
 
       if (iter%100 == 0 && rank == 0) printf("Iter %d\n",iter);
    }
@@ -122,8 +121,8 @@ int main(int argc, char *argv[])
    Cartesian_print(x, jmax, imax, nhalo, nprocy, nprocx);
 
    if (rank == 0){
-      printf("Timing is init %f stencil %f boundary condition %f ghost cell %lf total %f\n",
-             init_time,stencil_time,boundarycondition_time,ghostcell_time,total_time);
+      printf("Timing is stencil %f boundary condition %f ghost cell %lf total %f\n",
+             stencil_time,boundarycondition_time,ghostcell_time,total_time);
    }
 
    MPI_Type_free(&cart_col);
@@ -136,6 +135,9 @@ int main(int argc, char *argv[])
 
 void boundarycondition_update(double **x, int nhalo, int jsize, int isize, int nleft, int nrght, int nbot, int ntop)
 {
+   struct timespec tstart_boundarycondition;
+   cpu_timer_start(&tstart_boundarycondition);
+
 // Boundary conditions -- constant
    if (nleft == MPI_PROC_NULL){
       for (int j = 0; j < jsize; j++){
@@ -168,11 +170,16 @@ void boundarycondition_update(double **x, int nhalo, int jsize, int isize, int n
          }
       }
    }
+
+   boundarycondition_time += cpu_timer_stop(tstart_boundarycondition);
 }
 
 void ghostcell_update(double **x, int nhalo, int corners, int jsize, int isize,
       int nleft, int nrght, int nbot, int ntop, MPI_Datatype cart_col, MPI_Datatype cart_row)
 {
+   struct timespec tstart_ghostcell;
+   cpu_timer_start(&tstart_ghostcell);
+
    MPI_Request request[8];
    MPI_Status status[8];
 
@@ -205,6 +212,8 @@ void ghostcell_update(double **x, int nhalo, int corners, int jsize, int isize,
    }
 
    MPI_Waitall(waitcount, request, status);
+
+   ghostcell_time += cpu_timer_stop(tstart_ghostcell);
 }
 
 void haloupdate_test(int nhalo, int corners, int jsize, int isize, int nleft, int nrght, int nbot, int ntop,
@@ -333,10 +342,10 @@ void Cartesian_print(double **x, int jmax, int imax, int nhalo, int nprocy, int 
 
    int ibegin = imax *(xcoord  )/nprocx;
    int iend   = imax *(xcoord+1)/nprocx;
-   int isize = iend-ibegin;
+   int isize  = iend - ibegin;
    int jbegin = jmax *(ycoord  )/nprocy;
    int jend   = jmax *(ycoord+1)/nprocy;
-   int jsize = jend-jbegin;
+   int jsize  = jend - jbegin;
 
    double *xrow = (double *)malloc(isize_total*sizeof(double));
    for (int jj=nprocy-1; jj >= 0; jj--){
