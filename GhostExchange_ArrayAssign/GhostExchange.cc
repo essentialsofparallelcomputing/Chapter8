@@ -171,25 +171,37 @@ void ghostcell_update(double **x, int nhalo, int corners, int jsize, int isize, 
    double xbuf_right_send[nhalo*jsize];
    double xbuf_right_recv[nhalo*jsize];
    double xbuf_left_recv[nhalo*jsize];
-   int position_left = 0;
-   int position_right = 0;
+   int icount = 0;
    for (int j = 0; j < jsize; j++){
-      MPI_Pack(&x[j][0],           nhalo, MPI_DOUBLE, xbuf_left_send,  jsize*nhalo*sizeof(double), &position_left,  MPI_COMM_WORLD);
-      MPI_Pack(&x[j][isize-nhalo], nhalo, MPI_DOUBLE, xbuf_right_send, jsize*nhalo*sizeof(double), &position_right, MPI_COMM_WORLD);
+      for (int k = 0; k < nhalo; k++){
+         xbuf_left_send[icount++] = x[j][k];
+      }
+   }
+   icount = 0;
+   for (int j = 0; j < jsize; j++){
+      for (int k = 0; k < nhalo; k++){
+         xbuf_right_send[icount++] = x[j][isize-nhalo+k];
+      }
    }
 
-   MPI_Irecv(&xbuf_right_recv, position_left,  MPI_PACKED, nrght, 1001, MPI_COMM_WORLD, &request[0]);
-   MPI_Isend(&xbuf_left_send,  position_left,  MPI_PACKED, nleft, 1001, MPI_COMM_WORLD, &request[1]);
+   MPI_Irecv(&xbuf_right_recv, nhalo*jsize,  MPI_DOUBLE, nrght, 1001, MPI_COMM_WORLD, &request[0]);
+   MPI_Isend(&xbuf_left_send,  nhalo*jsize,  MPI_DOUBLE, nleft, 1001, MPI_COMM_WORLD, &request[1]);
 
-   MPI_Irecv(&xbuf_left_recv,  position_right, MPI_PACKED, nleft, 1002, MPI_COMM_WORLD, &request[2]);
-   MPI_Isend(&xbuf_right_send, position_right, MPI_PACKED, nrght, 1002, MPI_COMM_WORLD, &request[3]);
+   MPI_Irecv(&xbuf_left_recv,  nhalo*jsize, MPI_DOUBLE, nleft, 1002, MPI_COMM_WORLD, &request[2]);
+   MPI_Isend(&xbuf_right_send, nhalo*jsize, MPI_DOUBLE, nrght, 1002, MPI_COMM_WORLD, &request[3]);
    MPI_Waitall(4, request, status);
 
-   position_left = 0;
-   position_right = 0;
+   icount = 0;
    for (int j = 0; j < jsize; j++){
-      MPI_Unpack(xbuf_right_recv, jsize*nhalo*sizeof(double), &position_right,  &x[j][isize],  nhalo, MPI_DOUBLE, MPI_COMM_WORLD);
-      MPI_Unpack(xbuf_left_recv,  jsize*nhalo*sizeof(double), &position_left,   &x[j][-nhalo], nhalo, MPI_DOUBLE, MPI_COMM_WORLD);
+      for (int k = 0; k < nhalo; k++){
+         x[j][isize+k] = xbuf_right_recv[icount];
+      }
+   }
+   icount = 0;
+   for (int j = 0; j < jsize; j++){
+      for (int k = 0; k < nhalo; k++){
+         x[j][-nhalo+k] = xbuf_right_recv[icount];
+      }
    }
 
    if (corners) {
