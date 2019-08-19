@@ -121,7 +121,7 @@ int main(int argc, char *argv[])
    Cartesian_print(x, jmax, imax, nhalo, nprocy, nprocx);
 
    if (rank == 0){
-      printf("Timing is stencil %f boundary condition %f ghost cell %lf total %f\n",
+      printf("GhostExchange_VectorTypes Timing is stencil %f boundary condition %f ghost cell %lf total %f\n",
              stencil_time,boundarycondition_time,ghostcell_time,total_time);
    }
 
@@ -212,6 +212,8 @@ void ghostcell_update(double **x, int nhalo, int corners, int jsize, int isize,
    }
 
    MPI_Waitall(waitcount, request, status);
+
+   MPI_Barrier(MPI_COMM_WORLD);
 
    ghostcell_time += cpu_timer_stop(tstart_ghostcell);
 }

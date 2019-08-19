@@ -114,7 +114,7 @@ int main(int argc, char *argv[])
    Cartesian_print(cart_comm, x, jmax, imax, nhalo);
 
    if (rank == 0){
-      printf("Timing is stencil %f boundary condition %f ghost cell %lf total %f\n",
+      printf("CartExchange Timing is stencil %f boundary condition %f ghost cell %lf total %f\n",
              stencil_time,boundarycondition_time,ghostcell_time,total_time);
    }
 
@@ -253,6 +253,8 @@ void ghostcell_update(MPI_Comm cart_comm, double **x, int nhalo, int jsize, int 
    } else {
       position += jsize*nhalo*sizeof(double);
    }
+
+   MPI_Barrier(MPI_COMM_WORLD);
 
    ghostcell_time += cpu_timer_stop(tstart_ghostcell);
 }
