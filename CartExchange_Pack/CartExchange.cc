@@ -8,13 +8,13 @@
 #include "timer.h"
 
 #define SWAP_PTR(xnew,xold,xtmp) (xtmp=xnew, xnew=xold, xold=xtmp)
-void parse_input_args(int argc, char **argv, int &jmax, int &imax, int &nprocy, int &nprocx, int &nhalo);
+void parse_input_args(int argc, char **argv, int &jmax, int &imax, int &nprocy, int &nprocx, int &nhalo, int &do_timing);
 void Cartesian_print(MPI_Comm cart_comm, double **x, int jmax, int imax, int nhalo);
 void boundarycondition_update(double **x, int nhalo, int jsize, int isize, int nleft, int nrght, int nbot, int ntop);
 void ghostcell_update(MPI_Comm cart_comm, double **x, int nhalo, int jsize, int isize,
-      int nleft, int nrght, int nbot, int ntop);
+      int nleft, int nrght, int nbot, int ntop, int do_timing);
 void haloupdate_test(MPI_Comm cart_comm, int nhalo, int jsize, int isize, int nleft, int nrght, int nbot, int ntop,
-      int jmax, int imax, int nprocy, int nprocx);
+      int jmax, int imax, int nprocy, int nprocx, int do_timing);
 
 double boundarycondition_time=0.0, ghostcell_time=0.0;
 
@@ -30,8 +30,9 @@ int main(int argc, char *argv[])
    int imax = 2000, jmax = 2000;
    int nprocx = 0, nprocy = 0;
    int nhalo = 2;
+   int do_timing = 0;
 
-   parse_input_args(argc, argv, jmax, imax, nprocy, nprocx, nhalo);
+   parse_input_args(argc, argv, jmax, imax, nprocy, nprocx, nhalo, do_timing);
  
    struct timespec tstart_stencil, tstart_total;
    double stencil_time=0.0, total_time;
@@ -60,7 +61,7 @@ int main(int argc, char *argv[])
     * the ghost cells only exist for multi-processor runs with MPI. The boundary halo cells are to set boundary
     * conditions. Halos refer to both the ghost cells and the boundary halo cells.
     */
-   haloupdate_test(cart_comm, nhalo, jsize, isize, nleft, nrght, nbot, ntop, jmax, imax, nprocy, nprocx);
+   haloupdate_test(cart_comm, nhalo, jsize, isize, nleft, nrght, nbot, ntop, jmax, imax, nprocy, nprocx, do_timing);
 
    double** xtmp;
    // This offsets the array addressing so that the real part of the array is from 0,0 to jsize,isize
@@ -89,7 +90,7 @@ int main(int argc, char *argv[])
    }
 
    boundarycondition_update(x, nhalo, jsize, isize, nleft, nrght, nbot, ntop);
-   ghostcell_update(cart_comm, x, nhalo, jsize, isize, nleft, nrght, nbot, ntop);
+   ghostcell_update(cart_comm, x, nhalo, jsize, isize, nleft, nrght, nbot, ntop, do_timing);
 
    for (int iter = 0; iter < 1000; iter++){
       cpu_timer_start(&tstart_stencil);
@@ -105,7 +106,7 @@ int main(int argc, char *argv[])
       stencil_time += cpu_timer_stop(tstart_stencil);
 
       boundarycondition_update(x, nhalo, jsize, isize, nleft, nrght, nbot, ntop);
-      ghostcell_update(cart_comm, x, nhalo, jsize, isize, nleft, nrght, nbot, ntop);
+      ghostcell_update(cart_comm, x, nhalo, jsize, isize, nleft, nrght, nbot, ntop, do_timing);
 
       if (iter%100 == 0 && rank == 0) printf("Iter %d\n",iter);
    }
@@ -163,9 +164,9 @@ void boundarycondition_update(double **x, int nhalo, int jsize, int isize, int n
    boundarycondition_time += cpu_timer_stop(tstart_boundarycondition);
 }
 
-void ghostcell_update(MPI_Comm cart_comm, double **x, int nhalo, int jsize, int isize, int nleft, int nrght, int nbot, int ntop)
+void ghostcell_update(MPI_Comm cart_comm, double **x, int nhalo, int jsize, int isize, int nleft, int nrght, int nbot, int ntop, int do_timing)
 {
-   MPI_Barrier(MPI_COMM_WORLD);
+   if (do_timing) MPI_Barrier(MPI_COMM_WORLD);
 
    struct timespec tstart_ghostcell;
    cpu_timer_start(&tstart_ghostcell);
@@ -256,12 +257,12 @@ void ghostcell_update(MPI_Comm cart_comm, double **x, int nhalo, int jsize, int 
       position += jsize*nhalo*sizeof(double);
    }
 
-   MPI_Barrier(MPI_COMM_WORLD);
+   if (do_timing) MPI_Barrier(MPI_COMM_WORLD);
 
    ghostcell_time += cpu_timer_stop(tstart_ghostcell);
 }
 
-void haloupdate_test(MPI_Comm cart_comm, int nhalo, int jsize, int isize, int nleft, int nrght, int nbot, int ntop, int jmax, int imax, int nprocy, int nprocx)
+void haloupdate_test(MPI_Comm cart_comm, int nhalo, int jsize, int isize, int nleft, int nrght, int nbot, int ntop, int jmax, int imax, int nprocy, int nprocx, int do_timing)
 {
    int rank;
    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -282,20 +283,20 @@ void haloupdate_test(MPI_Comm cart_comm, int nhalo, int jsize, int isize, int nl
    }
 
    boundarycondition_update(x, nhalo, jsize, isize, nleft, nrght, nbot, ntop);
-   ghostcell_update(cart_comm, x, nhalo, jsize, isize, nleft, nrght, nbot, ntop);
+   ghostcell_update(cart_comm, x, nhalo, jsize, isize, nleft, nrght, nbot, ntop, do_timing);
 
    Cartesian_print(cart_comm, x, jmax, imax, nhalo);
 
    malloc2D_free(x, nhalo);
 }
 
-void parse_input_args(int argc, char **argv, int &jmax, int &imax, int &nprocy, int &nprocx, int &nhalo)
+void parse_input_args(int argc, char **argv, int &jmax, int &imax, int &nprocy, int &nprocx, int &nhalo, int &do_timing)
 {
    int c;
    int rank;
    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-   while ((c = getopt(argc, argv, "h:i:j:x:y:")) != -1){
+   while ((c = getopt(argc, argv, "h:i:j:tx:y:")) != -1){
       switch(c){
          case 'h':
             nhalo = atoi(optarg);
@@ -305,6 +306,9 @@ void parse_input_args(int argc, char **argv, int &jmax, int &imax, int &nprocy, 
             break;
          case 'j':
             jmax = atoi(optarg);
+            break;
+         case 't':
+            do_timing = 1;
             break;
          case 'x':
             nprocx = atoi(optarg);
