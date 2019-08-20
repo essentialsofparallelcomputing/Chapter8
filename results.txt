@@ -1,0 +1,684 @@
+
+for (( j=0; j<11; ++j)); do
+
+   for i in GhostExchange*
+   do
+      cd $i
+      #mpirun -n 176 --bind-to hwthread --mca btl_base_warn_component_unused 0 ./GhostExchange -x 11 -y 16 -i 20000 -j 20000 -h 1
+      mpirun -n 176 --bind-to hwthread --mca btl_base_warn_component_unused 0 ./GhostExchange -x 11 -y 16 -i 20000 -j 20000 -h 2
+      #mpirun -n 176 --bind-to hwthread --mca btl_base_warn_component_unused 0 ./GhostExchange -x 11 -y 16 -i 20000 -j 20000 -h 2 -c
+      cd ..
+   done
+
+   for i in CartExchange*
+   do
+      if [ $i != "CartExchange" ]; then
+         cd $i
+         #mpirun -n 176 --bind-to hwthread --mca btl_base_warn_component_unused 0 ./CartExchange -x 11 -y 16 -i 20000 -j 20000 -h 1
+         mpirun -n 176 --bind-to hwthread --mca btl_base_warn_component_unused 0 ./CartExchange -x 11 -y 16 -i 20000 -j 20000 -h 2
+         #mpirun -n 176 --bind-to hwthread --mca btl_base_warn_component_unused 0 ./CartExchange -x 11 -y 16 -i 20000 -j 20000 -h 2 -c
+         cd ..
+      fi
+   done
+
+done
+Parallel run with no threads
+Iter 0
+Iter 100
+Iter 200
+Iter 300
+Iter 400
+Iter 500
+Iter 600
+Iter 700
+Iter 800
+Iter 900
+GhostExchange_ArrayAssign Timing is stencil 24.165381 boundary condition 0.082393 ghost cell 0.691502 total 25.645791
+Parallel run with no threads
+Iter 0
+Iter 100
+Iter 200
+Iter 300
+Iter 400
+Iter 500
+Iter 600
+Iter 700
+Iter 800
+Iter 900
+GhostExchange_Pack Timing is stencil 24.260832 boundary condition 0.045295 ghost cell 1.245057 total 26.279704
+Parallel run with no threads
+Iter 0
+Iter 100
+Iter 200
+Iter 300
+Iter 400
+Iter 500
+Iter 600
+Iter 700
+Iter 800
+Iter 900
+GhostExchange_VectorTypes Timing is stencil 24.024130 boundary condition 0.162087 ghost cell 0.782455 total 25.720004
+Parallel run with no threads
+Iter 0
+Iter 100
+Iter 200
+Iter 300
+Iter 400
+Iter 500
+Iter 600
+Iter 700
+Iter 800
+Iter 900
+CartExchange_Pack Timing is stencil 24.105858 boundary condition 0.182820 ghost cell 1.551802 total 26.657419
+Parallel run with no threads
+Iter 0
+Iter 100
+Iter 200
+Iter 300
+Iter 400
+Iter 500
+Iter 600
+Iter 700
+Iter 800
+Iter 900
+CartExchange_VectorType Timing is stencil 24.127564 boundary condition 0.078850 ghost cell 0.695154 total 25.679925
+Parallel run with no threads
+Iter 0
+Iter 100
+Iter 200
+Iter 300
+Iter 400
+Iter 500
+Iter 600
+Iter 700
+Iter 800
+Iter 900
+GhostExchange_ArrayAssign Timing is stencil 24.265744 boundary condition 0.081693 ghost cell 0.677589 total 25.790246
+Parallel run with no threads
+Iter 0
+Iter 100
+Iter 200
+Iter 300
+Iter 400
+Iter 500
+Iter 600
+Iter 700
+Iter 800
+Iter 900
+GhostExchange_Pack Timing is stencil 24.115551 boundary condition 0.051220 ghost cell 1.293038 total 26.282625
+Parallel run with no threads
+Iter 0
+Iter 100
+Iter 200
+Iter 300
+Iter 400
+Iter 500
+Iter 600
+Iter 700
+Iter 800
+Iter 900
+GhostExchange_VectorTypes Timing is stencil 24.248575 boundary condition 0.144067 ghost cell 0.746819 total 25.891712
+Parallel run with no threads
+Iter 0
+Iter 100
+Iter 200
+Iter 300
+Iter 400
+Iter 500
+Iter 600
+Iter 700
+Iter 800
+Iter 900
+CartExchange_Pack Timing is stencil 24.334709 boundary condition 0.099225 ghost cell 1.606272 total 26.760520
+Parallel run with no threads
+Iter 0
+Iter 100
+Iter 200
+Iter 300
+Iter 400
+Iter 500
+Iter 600
+Iter 700
+Iter 800
+Iter 900
+CartExchange_VectorType Timing is stencil 24.174475 boundary condition 0.072094 ghost cell 0.704190 total 25.788538
+Parallel run with no threads
+Iter 0
+Iter 100
+Iter 200
+Iter 300
+Iter 400
+Iter 500
+Iter 600
+Iter 700
+Iter 800
+Iter 900
+GhostExchange_ArrayAssign Timing is stencil 24.277525 boundary condition 0.070971 ghost cell 0.698667 total 25.724951
+Parallel run with no threads
+Iter 0
+Iter 100
+Iter 200
+Iter 300
+Iter 400
+Iter 500
+Iter 600
+Iter 700
+Iter 800
+Iter 900
+GhostExchange_Pack Timing is stencil 24.316344 boundary condition 0.047537 ghost cell 1.280846 total 26.303366
+Parallel run with no threads
+Iter 0
+Iter 100
+Iter 200
+Iter 300
+Iter 400
+Iter 500
+Iter 600
+Iter 700
+Iter 800
+Iter 900
+GhostExchange_VectorTypes Timing is stencil 24.100395 boundary condition 0.152539 ghost cell 0.741466 total 25.638409
+Parallel run with no threads
+Iter 0
+Iter 100
+Iter 200
+Iter 300
+Iter 400
+Iter 500
+Iter 600
+Iter 700
+Iter 800
+Iter 900
+CartExchange_Pack Timing is stencil 24.343978 boundary condition 0.083064 ghost cell 1.598799 total 26.620436
+Parallel run with no threads
+Iter 0
+Iter 100
+Iter 200
+Iter 300
+Iter 400
+Iter 500
+Iter 600
+Iter 700
+Iter 800
+Iter 900
+CartExchange_VectorType Timing is stencil 24.073988 boundary condition 0.072546 ghost cell 0.669708 total 25.724728
+Parallel run with no threads
+Iter 0
+Iter 100
+Iter 200
+Iter 300
+Iter 400
+Iter 500
+Iter 600
+Iter 700
+Iter 800
+Iter 900
+GhostExchange_ArrayAssign Timing is stencil 24.126465 boundary condition 0.083737 ghost cell 0.647814 total 25.720015
+Parallel run with no threads
+Iter 0
+Iter 100
+Iter 200
+Iter 300
+Iter 400
+Iter 500
+Iter 600
+Iter 700
+Iter 800
+Iter 900
+GhostExchange_Pack Timing is stencil 24.093257 boundary condition 0.052652 ghost cell 1.288766 total 26.351734
+Parallel run with no threads
+Iter 0
+Iter 100
+Iter 200
+Iter 300
+Iter 400
+Iter 500
+Iter 600
+Iter 700
+Iter 800
+Iter 900
+GhostExchange_VectorTypes Timing is stencil 24.104286 boundary condition 0.109746 ghost cell 0.780118 total 25.742926
+Parallel run with no threads
+Iter 0
+Iter 100
+Iter 200
+Iter 300
+Iter 400
+Iter 500
+Iter 600
+Iter 700
+Iter 800
+Iter 900
+CartExchange_Pack Timing is stencil 24.214125 boundary condition 0.056304 ghost cell 1.593255 total 26.788519
+Parallel run with no threads
+Iter 0
+Iter 100
+Iter 200
+Iter 300
+Iter 400
+Iter 500
+Iter 600
+Iter 700
+Iter 800
+Iter 900
+CartExchange_VectorType Timing is stencil 23.945012 boundary condition 0.068651 ghost cell 0.701467 total 25.690786
+Parallel run with no threads
+Iter 0
+Iter 100
+Iter 200
+Iter 300
+Iter 400
+Iter 500
+Iter 600
+Iter 700
+Iter 800
+Iter 900
+GhostExchange_ArrayAssign Timing is stencil 23.945420 boundary condition 0.071033 ghost cell 0.703591 total 25.721005
+Parallel run with no threads
+Iter 0
+Iter 100
+Iter 200
+Iter 300
+Iter 400
+Iter 500
+Iter 600
+Iter 700
+Iter 800
+Iter 900
+GhostExchange_Pack Timing is stencil 24.136754 boundary condition 0.054096 ghost cell 1.275279 total 26.180459
+Parallel run with no threads
+Iter 0
+Iter 100
+Iter 200
+Iter 300
+Iter 400
+Iter 500
+Iter 600
+Iter 700
+Iter 800
+Iter 900
+GhostExchange_VectorTypes Timing is stencil 24.239823 boundary condition 0.067492 ghost cell 0.788021 total 25.587271
+Parallel run with no threads
+Iter 0
+Iter 100
+Iter 200
+Iter 300
+Iter 400
+Iter 500
+Iter 600
+Iter 700
+Iter 800
+Iter 900
+CartExchange_Pack Timing is stencil 24.231889 boundary condition 0.131403 ghost cell 1.585807 total 26.762935
+Parallel run with no threads
+Iter 0
+Iter 100
+Iter 200
+Iter 300
+Iter 400
+Iter 500
+Iter 600
+Iter 700
+Iter 800
+Iter 900
+CartExchange_VectorType Timing is stencil 24.190394 boundary condition 0.068017 ghost cell 0.708054 total 25.876687
+Parallel run with no threads
+Iter 0
+Iter 100
+Iter 200
+Iter 300
+Iter 400
+Iter 500
+Iter 600
+Iter 700
+Iter 800
+Iter 900
+GhostExchange_ArrayAssign Timing is stencil 23.948620 boundary condition 0.078844 ghost cell 0.669066 total 25.627321
+Parallel run with no threads
+Iter 0
+Iter 100
+Iter 200
+Iter 300
+Iter 400
+Iter 500
+Iter 600
+Iter 700
+Iter 800
+Iter 900
+GhostExchange_Pack Timing is stencil 24.051466 boundary condition 0.054450 ghost cell 1.250957 total 26.283069
+Parallel run with no threads
+Iter 0
+Iter 100
+Iter 200
+Iter 300
+Iter 400
+Iter 500
+Iter 600
+Iter 700
+Iter 800
+Iter 900
+GhostExchange_VectorTypes Timing is stencil 24.138470 boundary condition 0.116210 ghost cell 0.743725 total 25.636740
+Parallel run with no threads
+Iter 0
+Iter 100
+Iter 200
+Iter 300
+Iter 400
+Iter 500
+Iter 600
+Iter 700
+Iter 800
+Iter 900
+CartExchange_Pack Timing is stencil 24.077386 boundary condition 0.143030 ghost cell 1.567128 total 26.692402
+Parallel run with no threads
+Iter 0
+Iter 100
+Iter 200
+Iter 300
+Iter 400
+Iter 500
+Iter 600
+Iter 700
+Iter 800
+Iter 900
+CartExchange_VectorType Timing is stencil 23.962089 boundary condition 0.064939 ghost cell 0.715215 total 25.828758
+Parallel run with no threads
+Iter 0
+Iter 100
+Iter 200
+Iter 300
+Iter 400
+Iter 500
+Iter 600
+Iter 700
+Iter 800
+Iter 900
+GhostExchange_ArrayAssign Timing is stencil 24.154157 boundary condition 0.069678 ghost cell 0.697544 total 25.608341
+Parallel run with no threads
+Iter 0
+Iter 100
+Iter 200
+Iter 300
+Iter 400
+Iter 500
+Iter 600
+Iter 700
+Iter 800
+Iter 900
+GhostExchange_Pack Timing is stencil 24.056548 boundary condition 0.050588 ghost cell 1.272274 total 26.197612
+Parallel run with no threads
+Iter 0
+Iter 100
+Iter 200
+Iter 300
+Iter 400
+Iter 500
+Iter 600
+Iter 700
+Iter 800
+Iter 900
+GhostExchange_VectorTypes Timing is stencil 24.419369 boundary condition 0.090423 ghost cell 0.758613 total 25.599621
+Parallel run with no threads
+Iter 0
+Iter 100
+Iter 200
+Iter 300
+Iter 400
+Iter 500
+Iter 600
+Iter 700
+Iter 800
+Iter 900
+CartExchange_Pack Timing is stencil 24.273786 boundary condition 0.104935 ghost cell 1.628577 total 26.796803
+Parallel run with no threads
+Iter 0
+Iter 100
+Iter 200
+Iter 300
+Iter 400
+Iter 500
+Iter 600
+Iter 700
+Iter 800
+Iter 900
+CartExchange_VectorType Timing is stencil 24.339177 boundary condition 0.074740 ghost cell 0.692337 total 25.713549
+Parallel run with no threads
+Iter 0
+Iter 100
+Iter 200
+Iter 300
+Iter 400
+Iter 500
+Iter 600
+Iter 700
+Iter 800
+Iter 900
+GhostExchange_ArrayAssign Timing is stencil 23.985508 boundary condition 0.075545 ghost cell 0.687072 total 25.742532
+Parallel run with no threads
+Iter 0
+Iter 100
+Iter 200
+Iter 300
+Iter 400
+Iter 500
+Iter 600
+Iter 700
+Iter 800
+Iter 900
+GhostExchange_Pack Timing is stencil 24.157868 boundary condition 0.048138 ghost cell 1.262676 total 26.323892
+Parallel run with no threads
+Iter 0
+Iter 100
+Iter 200
+Iter 300
+Iter 400
+Iter 500
+Iter 600
+Iter 700
+Iter 800
+Iter 900
+GhostExchange_VectorTypes Timing is stencil 24.000608 boundary condition 0.128045 ghost cell 0.776225 total 25.828489
+Parallel run with no threads
+Iter 0
+Iter 100
+Iter 200
+Iter 300
+Iter 400
+Iter 500
+Iter 600
+Iter 700
+Iter 800
+Iter 900
+CartExchange_Pack Timing is stencil 24.249624 boundary condition 0.128485 ghost cell 1.582394 total 26.696834
+Parallel run with no threads
+Iter 0
+Iter 100
+Iter 200
+Iter 300
+Iter 400
+Iter 500
+Iter 600
+Iter 700
+Iter 800
+Iter 900
+CartExchange_VectorType Timing is stencil 23.927551 boundary condition 0.072549 ghost cell 0.660470 total 25.743105
+Parallel run with no threads
+Iter 0
+Iter 100
+Iter 200
+Iter 300
+Iter 400
+Iter 500
+Iter 600
+Iter 700
+Iter 800
+Iter 900
+GhostExchange_ArrayAssign Timing is stencil 24.163581 boundary condition 0.086716 ghost cell 0.695503 total 25.824000
+Parallel run with no threads
+Iter 0
+Iter 100
+Iter 200
+Iter 300
+Iter 400
+Iter 500
+Iter 600
+Iter 700
+Iter 800
+Iter 900
+GhostExchange_Pack Timing is stencil 24.210533 boundary condition 0.050812 ghost cell 1.262976 total 26.249358
+Parallel run with no threads
+Iter 0
+Iter 100
+Iter 200
+Iter 300
+Iter 400
+Iter 500
+Iter 600
+Iter 700
+Iter 800
+Iter 900
+GhostExchange_VectorTypes Timing is stencil 23.919693 boundary condition 0.147596 ghost cell 0.734752 total 25.720307
+Parallel run with no threads
+Iter 0
+Iter 100
+Iter 200
+Iter 300
+Iter 400
+Iter 500
+Iter 600
+Iter 700
+Iter 800
+Iter 900
+CartExchange_Pack Timing is stencil 24.131029 boundary condition 0.134129 ghost cell 1.582683 total 26.660494
+Parallel run with no threads
+Iter 0
+Iter 100
+Iter 200
+Iter 300
+Iter 400
+Iter 500
+Iter 600
+Iter 700
+Iter 800
+Iter 900
+CartExchange_VectorType Timing is stencil 24.367940 boundary condition 0.071819 ghost cell 0.707635 total 25.809681
+Parallel run with no threads
+Iter 0
+Iter 100
+Iter 200
+Iter 300
+Iter 400
+Iter 500
+Iter 600
+Iter 700
+Iter 800
+Iter 900
+GhostExchange_ArrayAssign Timing is stencil 24.423808 boundary condition 0.080356 ghost cell 0.694309 total 25.864628
+Parallel run with no threads
+Iter 0
+Iter 100
+Iter 200
+Iter 300
+Iter 400
+Iter 500
+Iter 600
+Iter 700
+Iter 800
+Iter 900
+GhostExchange_Pack Timing is stencil 24.174759 boundary condition 0.051064 ghost cell 1.286770 total 26.199027
+Parallel run with no threads
+Iter 0
+Iter 100
+Iter 200
+Iter 300
+Iter 400
+Iter 500
+Iter 600
+Iter 700
+Iter 800
+Iter 900
+GhostExchange_VectorTypes Timing is stencil 24.194004 boundary condition 0.106082 ghost cell 0.740832 total 25.640873
+Parallel run with no threads
+Iter 0
+Iter 100
+Iter 200
+Iter 300
+Iter 400
+Iter 500
+Iter 600
+Iter 700
+Iter 800
+Iter 900
+CartExchange_Pack Timing is stencil 24.167643 boundary condition 0.122030 ghost cell 1.611068 total 26.589042
+Parallel run with no threads
+Iter 0
+Iter 100
+Iter 200
+Iter 300
+Iter 400
+Iter 500
+Iter 600
+Iter 700
+Iter 800
+Iter 900
+CartExchange_VectorType Timing is stencil 24.068366 boundary condition 0.077522 ghost cell 0.671215 total 25.652231
+Parallel run with no threads
+Iter 0
+Iter 100
+Iter 200
+Iter 300
+Iter 400
+Iter 500
+Iter 600
+Iter 700
+Iter 800
+Iter 900
+GhostExchange_ArrayAssign Timing is stencil 24.096161 boundary condition 0.079697 ghost cell 0.655903 total 25.628234
+Parallel run with no threads
+Iter 0
+Iter 100
+Iter 200
+Iter 300
+Iter 400
+Iter 500
+Iter 600
+Iter 700
+Iter 800
+Iter 900
+GhostExchange_Pack Timing is stencil 24.341586 boundary condition 0.052325 ghost cell 1.262738 total 26.117982
+Parallel run with no threads
+Iter 0
+Iter 100
+Iter 200
+Iter 300
+Iter 400
+Iter 500
+Iter 600
+Iter 700
+Iter 800
+Iter 900
+GhostExchange_VectorTypes Timing is stencil 24.181130 boundary condition 0.088612 ghost cell 0.759118 total 25.524130
+Parallel run with no threads
+Iter 0
+Iter 100
+Iter 200
+Iter 300
+Iter 400
+Iter 500
+Iter 600
+Iter 700
+Iter 800
+Iter 900
+CartExchange_Pack Timing is stencil 24.228117 boundary condition 0.129250 ghost cell 1.614679 total 26.743543
+Parallel run with no threads
+Iter 0
+Iter 100
+Iter 200
+Iter 300
+Iter 400
+Iter 500
+Iter 600
+Iter 700
+Iter 800
+Iter 900
+CartExchange_VectorType Timing is stencil 24.291011 boundary condition 0.065890 ghost cell 0.700356 total 25.624896
