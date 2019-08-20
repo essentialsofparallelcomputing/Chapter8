@@ -177,6 +177,8 @@ void boundarycondition_update(double **x, int nhalo, int jsize, int isize, int n
 void ghostcell_update(double **x, int nhalo, int corners, int jsize, int isize,
       int nleft, int nrght, int nbot, int ntop, MPI_Datatype cart_col, MPI_Datatype cart_row)
 {
+   MPI_Barrier(MPI_COMM_WORLD);
+
    struct timespec tstart_ghostcell;
    cpu_timer_start(&tstart_ghostcell);
 

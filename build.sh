@@ -7,7 +7,7 @@ do
    cd $i
    make clean
    make distclean
-   cmake .
+   cmake -Wno-dev .
    make
    cd ..
 done
@@ -17,7 +17,7 @@ do
    cd $i
    make clean
    make distclean
-   cmake .
+   cmake -Wno-dev .
    make
    cd ..
 done

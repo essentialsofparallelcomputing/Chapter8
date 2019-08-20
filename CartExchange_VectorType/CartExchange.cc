@@ -131,6 +131,8 @@ int main(int argc, char *argv[])
 
 void boundarycondition_update(double **x, int nhalo, int jsize, int isize, int nleft, int nrght, int nbot, int ntop)
 {
+   MPI_Barrier(MPI_COMM_WORLD);
+
    struct timespec tstart_boundarycondition;
    cpu_timer_start(&tstart_boundarycondition);
 

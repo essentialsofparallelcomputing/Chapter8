@@ -1,0 +1,20 @@
+GhostExchange_ArrayAssign
+Median: 0.691502
+Mean 0.683505Std Dev=0.017702
+
+GhostExchange_Pack
+Median: 1.272274
+Mean 1.27103Std Dev=0.0149044
+
+GhostExchange_VectorTypes
+Median: 0.758613
+Mean 0.759286Std Dev=0.0184427
+
+CartExchange_Pack
+Median: 1.593255
+Mean 1.59295Std Dev=0.0211258
+
+CartExchange_VectorType
+Median: 0.700356
+Mean 0.693255Std Dev=0.0172284
+
