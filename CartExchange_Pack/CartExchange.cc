@@ -174,9 +174,6 @@ void ghostcell_update(MPI_Comm cart_comm, double **x, int nhalo, int jsize, int 
    MPI_Request request;
    MPI_Status status;
 
-   int rank;
-   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-
    int nhorizontal_count = nhalo*jsize;
    int nvertical_count   = nhalo*isize; // nhalo*(isize+2*nhalo);
    int buff_count = 2*nhorizontal_count + 2*nvertical_count;
