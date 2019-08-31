@@ -1,0 +1,13 @@
+default:	SynchronizedTimer1 SynchronizedTimer2
+all:	SynchronizedTimer1 SynchronizedTimer2
+
+SynchronizedTimer1: SynchronizedTimer1.c
+	mpicc SynchronizedTimer1.c  -o SynchronizedTimer1
+
+SynchronizedTimer2: SynchronizedTimer2.c
+	mpicc SynchronizedTimer2.c  -o SynchronizedTimer2
+
+clean:
+	rm -f SynchronizedTimer1 SynchronizedTimer1.o
+	rm -f SynchronizedTimer2 SynchronizedTimer2.o
+	rm -f Makefile
