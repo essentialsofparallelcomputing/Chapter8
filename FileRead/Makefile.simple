@@ -1,0 +1,9 @@
+default:	FileRead
+all:	FileRead
+
+FileRead: FileRead.c
+	mpicc FileRead.c  -o FileRead
+
+clean:
+	rm -f FileRead FileRead.o
+	rm -f Makefile
