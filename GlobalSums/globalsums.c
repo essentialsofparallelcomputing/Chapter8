@@ -63,8 +63,7 @@ int main(int argc, char *argv[])
 
    if (rank == 0) printf("MPI Kahan tests\n");
 
-   // 24 is as large as can be handled by the MPI_Scatterv call :(
-   for (int pow_of_two = 8; pow_of_two < 24 ; pow_of_two++){
+   for (int pow_of_two = 8; pow_of_two < 31 ; pow_of_two++){
       long ncells = (long)pow((double)2,(double)pow_of_two);
 
       int nsize;
@@ -110,25 +109,21 @@ double *init_energy(long ncells, int *nsize_out, double *accurate_sum){
    *accurate_sum = (double)ncellsdiv2 * high_value +
                    (double)ncellsdiv2 * low_value;
 
-   double *energy = (double *)malloc(ncells*sizeof(double));
-
-   // Initialize with high values first
-   for (long i = 0; i < ncells; i++){
-      energy[i] = (i < ncellsdiv2) ? high_value : low_value;
-   }
-
    double *local_energy = (double *)malloc(nsize*sizeof(double));
 
-   int sizes[nprocs], offsets[nprocs];
-   MPI_Gather(&nsize, 1, MPI_INT, sizes, 1, MPI_INT, 0, MPI_COMM_WORLD);
+   int sizes[nprocs];
+   MPI_Allgather(&nsize, 1, MPI_INT, sizes, 1, MPI_INT, MPI_COMM_WORLD);
+
+   long offsets[nprocs];
    offsets[0] = 0;
    for (int i = 1; i<nprocs; i++){
-      offsets[i] = offsets[i-1] + sizes[i-1];
+      offsets[i] = offsets[i-1] + (long)sizes[i-1];
    }
-      
-   MPI_Scatterv(energy, sizes, offsets, MPI_DOUBLE, local_energy, nsize, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
-   free(energy);
+   // Initialize with high values first
+   for (long i = 0; i < nsize; i++){
+      local_energy[i] = (i + offsets[rank] < ncellsdiv2) ? high_value : low_value;
+   }
 
    *nsize_out = nsize;
 
