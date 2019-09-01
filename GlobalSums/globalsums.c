@@ -101,9 +101,9 @@ double *init_energy(long ncells, int *nsize_out, double *accurate_sum){
    MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
    long ncellsdiv2 = ncells/2;
 
-   int ibegin = ncells *(rank  )/nprocs;
-   int iend   = ncells *(rank+1)/nprocs;
-   int nsize  = iend-ibegin;
+   long ibegin = ncells *(rank  )/nprocs;
+   long iend   = ncells *(rank+1)/nprocs;
+   long nsize  = iend-ibegin;
 
    double high_value = 1.0e-1;
    double low_value  = 1.0e-1/ORDERS_OF_MAGNITUDE;
