@@ -1,0 +1,14 @@
+default:	stream_triad
+all:	stream_triad
+
+%.o: %.c
+	mpicc -c $^
+
+stream_triad: stream_triad.o timer.o
+	mpicc $^ -o stream_triad
+
+clean:
+	rm -f stream_triad stream_triad.o
+
+distclean:
+	rm -f Makefile

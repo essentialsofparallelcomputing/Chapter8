@@ -9,4 +9,6 @@ DebugPrintout: DebugPrintout.o timer.o
 
 clean:
 	rm -f DebugPrintout DebugPrintout.o
+
+distclean:
 	rm -f Makefile
