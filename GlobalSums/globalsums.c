@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
 
    if (rank == 0) printf("MPI Kahan tests\n");
 
-   for (int pow_of_two = 8; pow_of_two < 31 ; pow_of_two++){
+   for (int pow_of_two = 8; pow_of_two < 32 ; pow_of_two++){
       long ncells = (long)pow((double)2,(double)pow_of_two);
 
       int nsize;
