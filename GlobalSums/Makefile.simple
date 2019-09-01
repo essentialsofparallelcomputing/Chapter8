@@ -1,0 +1,9 @@
+default:	globalsums
+all:	globalsums
+
+globalsums: globalsums.c timer.c
+	mpicc globalsums.c  -o globalsums
+
+clean:
+	rm -f globalsums globalsums.o
+	rm -f Makefile
