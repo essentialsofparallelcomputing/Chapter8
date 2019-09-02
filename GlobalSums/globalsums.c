@@ -14,11 +14,11 @@ struct esum_type{
    double correction;
 };
 
-MPI_Datatype MPI_TWO_DOUBLES;
+MPI_Datatype EPSUM_TWO_DOUBLES;
 MPI_Op KAHAN_SUM;
 
 void kahan_sum( struct esum_type * in, struct esum_type * inout, int *len,
-    MPI_Datatype *MPI_TWO_DOUBLES)
+    MPI_Datatype *EPSUM_TWO_DOUBLES)
 {
    double corrected_next_term, new_sum;
    corrected_next_term = in->sum + (in->correction + inout->correction);
@@ -28,8 +28,8 @@ void kahan_sum( struct esum_type * in, struct esum_type * inout, int *len,
 }
 
 void init_kahan_sum(void){
-   MPI_Type_contiguous(2, MPI_DOUBLE, &MPI_TWO_DOUBLES);
-   MPI_Type_commit(&MPI_TWO_DOUBLES);
+   MPI_Type_contiguous(2, MPI_DOUBLE, &EPSUM_TWO_DOUBLES);
+   MPI_Type_commit(&EPSUM_TWO_DOUBLES);
 
    int commutative = 1;
    MPI_Op_create((MPI_User_function *)kahan_sum, commutative, &KAHAN_SUM);
@@ -47,7 +47,7 @@ double global_kahan_sum(int nsize, double *local_energy){
       local.sum          = new_sum;
    }
 
-   MPI_Allreduce(&local, &global, 1, MPI_TWO_DOUBLES, KAHAN_SUM, MPI_COMM_WORLD);
+   MPI_Allreduce(&local, &global, 1, EPSUM_TWO_DOUBLES, KAHAN_SUM, MPI_COMM_WORLD);
 
    return global.sum;
 }
@@ -88,7 +88,7 @@ int main(int argc, char *argv[])
       free(local_energy);
    }
 
-   MPI_Type_free(&MPI_TWO_DOUBLES);
+   MPI_Type_free(&EPSUM_TWO_DOUBLES);
    MPI_Op_free(&KAHAN_SUM);
    MPI_Finalize();
    return 0;
