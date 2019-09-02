@@ -25,14 +25,14 @@ endif()
 find_package(MPI REQUIRED)
 
 add_executable(DebugPrintout DebugPrintout.c timer.c)
-target_include_directories(DebugPrintout PRIVATE ${MPI_C_INCLUDE_PATH})
-target_compile_options(DebugPrintout PRIVATE ${MPI_C_COMPILE_FLAGS})
-target_link_libraries(DebugPrintout ${MPI_C_LIBRARIES} ${MPI_C_LINK_FLAGS})
+set_target_properties(DebugPrintout PROPERTIES INCLUDE_DIRECTORIES "${MPI_C_INCLUDE_PATH}")
+set_target_properties(DebugPrintout PROPERTIES COMPILE_FLAGS "${MPI_C_COMPILE_FLAGS}")
+set_target_properties(DebugPrintout PROPERTIES LINK_FLAGS "${MPI_C_LIBRARIES} ${MPI_C_LINK_FLAGS}")
 
 # Add a test:
 enable_testing()
 add_test(SimpleTest ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} ${MPIEXEC_MAX_NUMPROCS} ${MPIEXEC_PREFLAGS}
-         ${CMAKE_CURRENT_BINARY_DIR}/MinWorkExampleMPI ${MPIEXEC_POSTFLAGS})
+         ${CMAKE_CURRENT_BINARY_DIR}/DebugPrintout ${MPIEXEC_POSTFLAGS})
 
 # Cleanup
 add_custom_target(distclean COMMAND rm -rf CMakeCache.txt CMakeFiles

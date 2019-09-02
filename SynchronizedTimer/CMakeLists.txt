@@ -25,14 +25,14 @@ endif()
 find_package(MPI REQUIRED)
 
 add_executable(SynchronizedTimer1 SynchronizedTimer1.c)
-target_include_directories(SynchronizedTimer1 PRIVATE ${MPI_C_INCLUDE_PATH})
-target_compile_options(SynchronizedTimer1 PRIVATE ${MPI_C_COMPILE_FLAGS})
-target_link_libraries(SynchronizedTimer1 ${MPI_C_LIBRARIES} ${MPI_C_LINK_FLAGS})
+set_target_properties(SynchronizedTimer1 PROPERTIES INCLUDE_DIRECTORIES "${MPI_C_INCLUDE_PATH}")
+set_target_properties(SynchronizedTimer1 PROPERTIES COMPILE_FLAGS "${MPI_C_COMPILE_FLAGS}")
+set_target_properties(SynchronizedTimer1 PROPERTIES LINK_FLAGS "${MPI_C_LIBRARIES} ${MPI_C_LINK_FLAGS}")
 
 add_executable(SynchronizedTimer2 SynchronizedTimer2.c)
-target_include_directories(SynchronizedTimer2 PRIVATE ${MPI_C_INCLUDE_PATH})
-target_compile_options(SynchronizedTimer2 PRIVATE ${MPI_C_COMPILE_FLAGS})
-target_link_libraries(SynchronizedTimer2 ${MPI_C_LIBRARIES} ${MPI_C_LINK_FLAGS})
+set_target_properties(SynchronizedTimer2 PROPERTIES INCLUDE_DIRECTORIES "${MPI_C_INCLUDE_PATH}")
+set_target_properties(SynchronizedTimer2 PROPERTIES COMPILE_FLAGS "${MPI_C_COMPILE_FLAGS}")
+set_target_properties(SynchronizedTimer2 PROPERTIES LINK_FLAGS "${MPI_C_LIBRARIES} ${MPI_C_LINK_FLAGS}")
 
 # Add a test:
 enable_testing()

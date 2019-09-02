@@ -25,14 +25,14 @@ endif()
 find_package(MPI REQUIRED)
 
 add_executable(FileRead FileRead.c)
-target_include_directories(FileRead PRIVATE ${MPI_C_INCLUDE_PATH})
-target_compile_options(FileRead PRIVATE ${MPI_C_COMPILE_FLAGS})
-target_link_libraries(FileRead ${MPI_C_LIBRARIES} ${MPI_C_LINK_FLAGS})
+set_target_properties(FileRead PROPERTIES INCLUDE_DIRECTORIES "${MPI_C_INCLUDE_PATH}")
+set_target_properties(FileRead PROPERTIES COMPILE_FLAGS "${MPI_C_COMPILE_FLAGS}")
+set_target_properties(FileRead PROPERTIES LINK_FLAGS "${MPI_C_LIBRARIES} ${MPI_C_LINK_FLAGS}")
 
 # Add a test:
 enable_testing()
 add_test(SimpleTest ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} ${MPIEXEC_MAX_NUMPROCS} ${MPIEXEC_PREFLAGS}
-         ${CMAKE_CURRENT_BINARY_DIR}/MinWorkExampleMPI ${MPIEXEC_POSTFLAGS})
+         ${CMAKE_CURRENT_BINARY_DIR}/FileRead ${MPIEXEC_POSTFLAGS})
 
 # Cleanup
 add_custom_target(distclean COMMAND rm -rf CMakeCache.txt CMakeFiles

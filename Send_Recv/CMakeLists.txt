@@ -25,39 +25,39 @@ endif()
 find_package(MPI REQUIRED)
 
 add_executable(SendRecv1 SendRecv1.c)
-target_include_directories(SendRecv1 PRIVATE ${MPI_C_INCLUDE_PATH})
-target_compile_options(SendRecv1 PRIVATE ${MPI_C_COMPILE_FLAGS})
-target_link_libraries(SendRecv1 ${MPI_C_LIBRARIES} ${MPI_C_LINK_FLAGS})
+set_target_properties(SendRecv1 PROPERTIES INCLUDE_DIRECTORIES "${MPI_C_INCLUDE_PATH}")
+set_target_properties(SendRecv1 PROPERTIES COMPILE_FLAGS "${MPI_C_COMPILE_FLAGS}")
+set_target_properties(SendRecv1 PROPERTIES LINK_FLAGS "${MPI_C_LIBRARIES} ${MPI_C_LINK_FLAGS}")
 
 add_executable(SendRecv2 SendRecv2.c)
-target_include_directories(SendRecv2 PRIVATE ${MPI_C_INCLUDE_PATH})
-target_compile_options(SendRecv2 PRIVATE ${MPI_C_COMPILE_FLAGS})
-target_link_libraries(SendRecv2 ${MPI_C_LIBRARIES} ${MPI_C_LINK_FLAGS})
+set_target_properties(SendRecv2 PROPERTIES INCLUDE_DIRECTORIES "${MPI_C_INCLUDE_PATH}")
+set_target_properties(SendRecv2 PROPERTIES COMPILE_FLAGS "${MPI_C_COMPILE_FLAGS}")
+set_target_properties(SendRecv2 PROPERTIES LINK_FLAGS "${MPI_C_LIBRARIES} ${MPI_C_LINK_FLAGS}")
 
 add_executable(SendRecv3 SendRecv3.c)
-target_include_directories(SendRecv3 PRIVATE ${MPI_C_INCLUDE_PATH})
-target_compile_options(SendRecv3 PRIVATE ${MPI_C_COMPILE_FLAGS})
-target_link_libraries(SendRecv3 ${MPI_C_LIBRARIES} ${MPI_C_LINK_FLAGS})
+set_target_properties(SendRecv3 PROPERTIES INCLUDE_DIRECTORIES "${MPI_C_INCLUDE_PATH}")
+set_target_properties(SendRecv3 PROPERTIES COMPILE_FLAGS "${MPI_C_COMPILE_FLAGS}")
+set_target_properties(SendRecv3 PROPERTIES LINK_FLAGS "${MPI_C_LIBRARIES} ${MPI_C_LINK_FLAGS}")
 
 add_executable(SendRecv4 SendRecv4.c)
-target_include_directories(SendRecv4 PRIVATE ${MPI_C_INCLUDE_PATH})
-target_compile_options(SendRecv4 PRIVATE ${MPI_C_COMPILE_FLAGS})
-target_link_libraries(SendRecv4 ${MPI_C_LIBRARIES} ${MPI_C_LINK_FLAGS})
+set_target_properties(SendRecv4 PROPERTIES INCLUDE_DIRECTORIES "${MPI_C_INCLUDE_PATH}")
+set_target_properties(SendRecv4 PROPERTIES COMPILE_FLAGS "${MPI_C_COMPILE_FLAGS}")
+set_target_properties(SendRecv4 PROPERTIES LINK_FLAGS "${MPI_C_LIBRARIES} ${MPI_C_LINK_FLAGS}")
 
 add_executable(SendRecv5 SendRecv5.c)
-target_include_directories(SendRecv5 PRIVATE ${MPI_C_INCLUDE_PATH})
-target_compile_options(SendRecv5 PRIVATE ${MPI_C_COMPILE_FLAGS})
-target_link_libraries(SendRecv5 ${MPI_C_LIBRARIES} ${MPI_C_LINK_FLAGS})
+set_target_properties(SendRecv5 PROPERTIES INCLUDE_DIRECTORIES "${MPI_C_INCLUDE_PATH}")
+set_target_properties(SendRecv5 PROPERTIES COMPILE_FLAGS "${MPI_C_COMPILE_FLAGS}")
+set_target_properties(SendRecv5 PROPERTIES LINK_FLAGS "${MPI_C_LIBRARIES} ${MPI_C_LINK_FLAGS}")
 
 add_executable(SendRecv6 SendRecv6.c)
-target_include_directories(SendRecv6 PRIVATE ${MPI_C_INCLUDE_PATH})
-target_compile_options(SendRecv6 PRIVATE ${MPI_C_COMPILE_FLAGS})
-target_link_libraries(SendRecv6 ${MPI_C_LIBRARIES} ${MPI_C_LINK_FLAGS})
+set_target_properties(SendRecv6 PROPERTIES INCLUDE_DIRECTORIES "${MPI_C_INCLUDE_PATH}")
+set_target_properties(SendRecv6 PROPERTIES COMPILE_FLAGS "${MPI_C_COMPILE_FLAGS}")
+set_target_properties(SendRecv6 PROPERTIES LINK_FLAGS "${MPI_C_LIBRARIES} ${MPI_C_LINK_FLAGS}")
 
 # Add a test:
 enable_testing()
 add_test(SimpleTest ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} ${MPIEXEC_MAX_NUMPROCS} ${MPIEXEC_PREFLAGS}
-         ${CMAKE_CURRENT_BINARY_DIR}/MinWorkExampleMPI ${MPIEXEC_POSTFLAGS})
+         ${CMAKE_CURRENT_BINARY_DIR}/SendRecv2 ${MPIEXEC_POSTFLAGS})
 
 # Cleanup
 add_custom_target(distclean COMMAND rm -rf CMakeCache.txt CMakeFiles

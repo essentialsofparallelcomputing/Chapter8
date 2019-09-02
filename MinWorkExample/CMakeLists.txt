@@ -26,9 +26,9 @@ find_package(MPI REQUIRED)
 
 add_executable(MinWorkExampleMPI MinWorkExampleMPI.c)
 
-target_include_directories(MinWorkExampleMPI PRIVATE ${MPI_C_INCLUDE_PATH})
-target_compile_options(MinWorkExampleMPI PRIVATE ${MPI_C_COMPILE_FLAGS})
-target_link_libraries(MinWorkExampleMPI ${MPI_C_LIBRARIES} ${MPI_C_LINK_FLAGS})
+set_target_properties(MinWorkExampleMPI PROPERTIES INCLUDE_DIRECTORIES "${MPI_C_INCLUDE_PATH}")
+set_target_properties(MinWorkExampleMPI PROPERTIES COMPILE_FLAGS "${MPI_C_COMPILE_FLAGS}")
+set_target_properties(MinWorkExampleMPI PROPERTIES LINK_FLAGS "${MPI_C_LIBRARIES} ${MPI_C_LINK_FLAGS}")
 
 # Add a test:
 enable_testing()
