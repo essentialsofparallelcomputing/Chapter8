@@ -6,4 +6,6 @@ FileRead: FileRead.c
 
 clean:
 	rm -f FileRead FileRead.o
+
+distclean:
 	rm -f Makefile

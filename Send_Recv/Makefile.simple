@@ -23,4 +23,6 @@ clean:
 	rm -f SendRecv1 SendRecv1.o SendRecv2 SendRecv2.o
 	rm -f SendRecv3 SendRecv3.o SendRecv4 SendRecv4.o
 	rm -f SendRecv5 SendRecv5.o SendRecv6 SendRecv6.o
+
+distclean:
 	rm -f Makefile

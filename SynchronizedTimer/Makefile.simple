@@ -10,4 +10,6 @@ SynchronizedTimer2: SynchronizedTimer2.c
 clean:
 	rm -f SynchronizedTimer1 SynchronizedTimer1.o
 	rm -f SynchronizedTimer2 SynchronizedTimer2.o
+
+distclean:
 	rm -f Makefile

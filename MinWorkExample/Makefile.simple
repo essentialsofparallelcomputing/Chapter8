@@ -6,4 +6,6 @@ MinWorkExampleMPI: MinWorkExampleMPI.c
 
 clean:
 	rm -f MinWorkExampleMPI MinWorkExampleMPI.o
+
+distclean:
 	rm -f Makefile
