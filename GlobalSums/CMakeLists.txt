@@ -33,6 +33,9 @@ target_include_directories(globalsums PRIVATE ${MPI_C_INCLUDE_PATH})
 target_compile_options(globalsums PRIVATE ${MPI_C_COMPILE_FLAGS})
 target_link_libraries(globalsums ${MPI_C_LIBRARIES} ${MPI_C_LINK_FLAGS})
 
+# fix for missing math library
+target_link_libraries(globalsums -lm)
+
 # Cleanup
 add_custom_target(distclean COMMAND rm -rf CMakeCache.txt CMakeFiles
                   Makefile cmake_install.cmake globalsums.dSYM ipo_out.optrpt)
