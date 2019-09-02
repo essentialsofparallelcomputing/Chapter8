@@ -1,0 +1,14 @@
+default:	ScatterGather
+all:	ScatterGather
+
+%.o: %.c
+	mpicc -c $^
+
+ScatterGather: ScatterGather.o
+	mpicc $^ -o ScatterGather
+
+clean:
+	rm -f ScatterGather ScatterGather.o
+
+distclean:
+	rm -f Makefile
