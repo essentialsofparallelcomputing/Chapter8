@@ -1,14 +1,18 @@
-default:	stream_triad
-all:	stream_triad
+default:	StreamTriad StreamTriadVec
+all:	StreamTriad StreamTriadVec
 
 %.o: %.c
 	mpicc -c $^
 
-stream_triad: stream_triad.o timer.o
-	mpicc $^ -o stream_triad
+StreamTriad: StreamTriad.o timer.o
+	mpicc -g -O3 -fstrict-aliasing -march=native -mtune=native -fno-tree-vectorize -fopt-info-loop-optimized $^ -o StreamTriad
+
+StreamTriadVec: StreamTriadVec.o timer.o
+	mpicc -g -O3 -fstrict-aliasing -march=native -mtune=native -ftree-vectorize -fopt-info-loop-optimized $^ -o StreamTriadVec
 
 clean:
-	rm -f stream_triad stream_triad.o
+	rm -f StreamTriad StreamTriad.o
+	rm -f StreamTriadVec StreamTriadVec.o
 
 distclean:
 	rm -f Makefile

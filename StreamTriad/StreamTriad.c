@@ -45,7 +45,7 @@ int main(int argc, char *argv[]){
    free(b);
    free(c);
 
-   printf("Average runtime is %lf msecs\n", time_sum/NTIMES);
+   if (rank == 0) printf("Average runtime is %lf msecs\n", time_sum/NTIMES);
    MPI_Finalize();
    return(0);
 }
