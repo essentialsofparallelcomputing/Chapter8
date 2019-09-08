@@ -53,8 +53,15 @@ int main(int argc, char *argv[])
    int jend   = jmax *(ycoord+1)/nprocy;
    int jsize  = jend - jbegin;
 
+   int jlow=0, jhgh=jsize;
+   if (corners) {
+      if (nbot == MPI_PROC_NULL) jlow = -nhalo;
+      if (ntop  == MPI_PROC_NULL) jhgh = jsize+nhalo;
+   }   
+   int jnum = jhgh-jlow;
+
    MPI_Datatype cart_col;
-   MPI_Type_vector(jsize, nhalo, isize+2*nhalo, MPI_DOUBLE, &cart_col);
+   MPI_Type_vector(jnum, nhalo, isize+2*nhalo, MPI_DOUBLE, &cart_col);
    MPI_Type_commit(&cart_col);
 
    MPI_Datatype cart_row;
@@ -186,11 +193,18 @@ void ghostcell_update(double **x, int nhalo, int corners, int jsize, int isize,
    MPI_Request request[8];
    MPI_Status status[8];
 
-   MPI_Irecv(&x[0][isize], 1,  cart_col, nrght, 1001, MPI_COMM_WORLD, &request[0]);
-   MPI_Isend(&x[0][0],     1,  cart_col, nleft, 1001, MPI_COMM_WORLD, &request[1]);
+   int jlow=0, jhgh=jsize;
+   if (corners) {
+      if (nbot == MPI_PROC_NULL) jlow = -nhalo;
+      if (ntop  == MPI_PROC_NULL) jhgh = jsize+nhalo;
+   }
+   int jnum = jhgh-jlow;
 
-   MPI_Irecv(&x[0][-nhalo],      1, cart_col, nleft, 1002, MPI_COMM_WORLD, &request[2]);
-   MPI_Isend(&x[0][isize-nhalo], 1, cart_col, nrght, 1002, MPI_COMM_WORLD, &request[3]);
+   MPI_Irecv(&x[jlow][isize], 1,  cart_col, nrght, 1001, MPI_COMM_WORLD, &request[0]);
+   MPI_Isend(&x[jlow][0],     1,  cart_col, nleft, 1001, MPI_COMM_WORLD, &request[1]);
+
+   MPI_Irecv(&x[jlow][-nhalo],      1, cart_col, nleft, 1002, MPI_COMM_WORLD, &request[2]);
+   MPI_Isend(&x[jlow][isize-nhalo], 1, cart_col, nrght, 1002, MPI_COMM_WORLD, &request[3]);
 
    int waitcount;
 
