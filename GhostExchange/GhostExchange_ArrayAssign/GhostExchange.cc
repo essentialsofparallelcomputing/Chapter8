@@ -143,16 +143,16 @@ void boundarycondition_update(double **x, int nhalo, int jsize, int isize, int n
    }
 
    if (nbot == MPI_PROC_NULL){
-      for (int i = -nhalo; i < isize+nhalo; i++){
-         for (int k=-nhalo; k<0; k++){
+      for (int k=-nhalo; k<0; k++){
+         for (int i = -nhalo; i < isize+nhalo; i++){
             x[k][i] = x[0][i];
          }
       }
    }
       
    if (ntop == MPI_PROC_NULL){
-      for (int i = -nhalo; i < isize+nhalo; i++){
-         for (int k=0; k<nhalo; k++){
+      for (int k=0; k<nhalo; k++){
+         for (int i = -nhalo; i < isize+nhalo; i++){
             x[jsize+k][i] = x[jsize-1][i];
          }
       }
@@ -197,13 +197,13 @@ void ghostcell_update(double **x, int nhalo, int corners, int jsize, int isize, 
    icount = 0;
    for (int j = 0; j < jsize; j++){
       for (int k = 0; k < nhalo; k++){
-         x[j][isize+k] = xbuf_right_recv[icount];
+         x[j][isize+k] = xbuf_right_recv[icount++];
       }
    }
    icount = 0;
    for (int j = 0; j < jsize; j++){
       for (int k = 0; k < nhalo; k++){
-         x[j][-nhalo+k] = xbuf_right_recv[icount];
+         x[j][-nhalo+k] = xbuf_left_recv[icount++];
       }
    }
 
