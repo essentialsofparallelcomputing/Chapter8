@@ -1,25 +1,29 @@
 cmake_minimum_required(VERSION 2.8)
 project(GhostExchange)
 
+set (CMAKE_C_STANDARD 99)
+set (CMAKE_CXX_STANDARD 98)
+
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O3")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O3")
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang") # using Clang
-   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fstrict-aliasing -march=native -mtune=native")
 
-elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU") # using GCC
-   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fstrict-aliasing -march=native -mtune=native")
+set(CMAKE_MODULE_PATH cmake/Modules)
 
-elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel") # using Intel C
-   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ansi-alias -xHOST")
+find_package(Vector)
 
-elseif (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+if (CMAKE_VECTOR_VERBOSE)
+    set(VECTOR_C_FLAGS "${VECTOR_C_FLAGS} ${VECTOR_C_VERBOSE}")
+    set(VECTOR_CXX_FLAGS "${VECTOR_CXX_FLAGS} ${VECTOR_CXX_VERBOSE}")
+endif (CMAKE_VECTOR_VERBOSE)
 
-elseif (CMAKE_CXX_COMPILER_ID MATCHES "XL")
-   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -qalias=ansi -qhot -qarch=pwr9 -qtune=pwr9")
+if (CMAKE_VECTOR_NOVEC)
+    set(VECTOR_C_FLAGS "${VECTOR_NOVEC_C_FLAGS}")
+    set(VECTOR_CXX_FLAGS "${VECTOR_NOVEC_CXX_FLAGS}")
+endif (CMAKE_VECTOR_NOVEC)
 
-elseif (CMAKE_CXX_COMPILER_ID MATCHES "Cray")
-   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -h restrict=a")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${VECTOR_C_FLAGSS}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${VECTOR_CXX_FLAGSS}")
 
-endif()
 
 # Require MPI for this project:
 find_package(MPI REQUIRED)

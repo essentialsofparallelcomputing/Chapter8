@@ -148,10 +148,14 @@ int main(int argc, char *argv[])
       }
    }
 
-   for (int k = kmax/2 - 5; k < kmax/2 + 5; k++){
-      for (int j = jmax/2 - 5; j < jmax/2 + 5; j++){
-         for (int i = imax/2 - 5; i < imax/2 + 5; i++){
-            if (j >= jbegin && j < jend && i >= ibegin && i < iend) {
+   int ispan=5, jspan=5, kspan=5;
+   if (ispan > imax/2) ispan = imax/2;
+   if (jspan > jmax/2) jspan = jmax/2;
+   if (kspan > kmax/2) kspan = kmax/2;
+   for (int k = kmax/2 - kspan; k < kmax/2 + kspan; k++){
+      for (int j = jmax/2 - jspan; j < jmax/2 + jspan; j++){
+         for (int i = imax/2 - ispan; i < imax/2 + ispan; i++){
+            if (k >= kbegin && k < kend && j >= jbegin && j < jend && i >= ibegin && i < iend) {
                x[k-kbegin][j-jbegin][i-ibegin] = 400.0;
             }
          }
@@ -426,7 +430,6 @@ void ghostcell_update(double ***x, int nhalo, int corners, struct sizes size, st
       }
    }
 
-
    if (corners) {
       jlow = -nhalo;
       jhgh = jsize+nhalo;
@@ -436,7 +439,7 @@ void ghostcell_update(double ***x, int nhalo, int corners, struct sizes size, st
       jhgh = jsize;
       jnum = jsize;
    }
-   bufsize = jsize*inum*nhalo;
+   bufsize = jnum*inum*nhalo;
 
    if (ngh.frnt != MPI_PROC_NULL){
       icount = 0;
@@ -459,11 +462,11 @@ void ghostcell_update(double ***x, int nhalo, int corners, struct sizes size, st
       }
    }
 
-   MPI_Irecv(&xbuf_low_recv, bufsize, MPI_DOUBLE, ngh.back, 1005, MPI_COMM_WORLD, &request[0]);
-   MPI_Isend(&xbuf_hgh_send, bufsize, MPI_DOUBLE, ngh.frnt, 1005, MPI_COMM_WORLD, &request[1]);
+   MPI_Irecv(&xbuf_hgh_recv, bufsize, MPI_DOUBLE, ngh.back, 1005, MPI_COMM_WORLD, &request[0]);
+   MPI_Isend(&xbuf_low_send, bufsize, MPI_DOUBLE, ngh.frnt, 1005, MPI_COMM_WORLD, &request[1]);
 
-   MPI_Irecv(&xbuf_hgh_recv, bufsize, MPI_DOUBLE, ngh.frnt, 1006, MPI_COMM_WORLD, &request[2]);
-   MPI_Isend(&xbuf_low_send, bufsize, MPI_DOUBLE, ngh.back, 1006, MPI_COMM_WORLD, &request[3]);
+   MPI_Irecv(&xbuf_low_recv, bufsize, MPI_DOUBLE, ngh.frnt, 1006, MPI_COMM_WORLD, &request[2]);
+   MPI_Isend(&xbuf_hgh_send, bufsize, MPI_DOUBLE, ngh.back, 1006, MPI_COMM_WORLD, &request[3]);
    MPI_Waitall(4, request, status);
 
    if (ngh.back != MPI_PROC_NULL){
