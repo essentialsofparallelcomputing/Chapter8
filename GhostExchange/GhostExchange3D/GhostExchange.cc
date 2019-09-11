@@ -317,7 +317,7 @@ void ghostcell_update(double ***x, int nhalo, int corners, struct sizes size, st
       if (ngh.left == MPI_PROC_NULL) jlow = -nhalo;
       if (ngh.rght == MPI_PROC_NULL) jhgh = jsize+nhalo;
    }
-   jnum = jhgh-jlow+1;
+   jnum = jhgh-jlow;
    bufsize = ksize*jnum*nhalo;
 
    if (ngh.left != MPI_PROC_NULL){

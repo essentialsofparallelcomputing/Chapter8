@@ -128,32 +128,32 @@ void boundarycondition_update(double **x, int nhalo, int jsize, int isize, int n
 // Boundary conditions -- constant
    if (nleft == MPI_PROC_NULL){
       for (int j = 0; j < jsize; j++){
-         for (int k=-nhalo; k<0; k++){
-            x[j][k] = x[j][0];
+         for (int ll=-nhalo; ll<0; ll++){
+            x[j][ll] = x[j][0];
          }
       }
    }
 
    if (nrght == MPI_PROC_NULL){
       for (int j = 0; j < jsize; j++){
-         for (int k=0; k<nhalo; k++){
-            x[j][isize+k] = x[j][isize-1];
+         for (int ll=0; ll<nhalo; ll++){
+            x[j][isize+ll] = x[j][isize-1];
          }
       }
    }
 
    if (nbot == MPI_PROC_NULL){
-      for (int i = -nhalo; i < isize+nhalo; i++){
-         for (int k=-nhalo; k<0; k++){
-            x[k][i] = x[0][i];
+      for (int ll=-nhalo; ll<0; ll++){
+         for (int i = -nhalo; i < isize+nhalo; i++){
+            x[ll][i] = x[0][i];
          }
       }
    }
       
    if (ntop == MPI_PROC_NULL){
-      for (int i = -nhalo; i < isize+nhalo; i++){
-         for (int k=0; k<nhalo; k++){
-            x[jsize+k][i] = x[jsize-1][i];
+      for (int ll=0; ll<nhalo; ll++){
+         for (int i = -nhalo; i < isize+nhalo; i++){
+            x[jsize+ll][i] = x[jsize-1][i];
          }
       }
    }
@@ -170,37 +170,49 @@ void ghostcell_update(double **x, int nhalo, int corners, int jsize, int isize, 
 
    MPI_Request request[4*nhalo];
    MPI_Status status[4*nhalo];
-   double xbuf_left_send[nhalo*jsize];
-   double xbuf_right_send[nhalo*jsize];
-   double xbuf_right_recv[nhalo*jsize];
-   double xbuf_left_recv[nhalo*jsize];
+
+   int jlow=0, jhgh=jsize;
+   if (corners) {
+      if (nbot == MPI_PROC_NULL) jlow = -nhalo;
+      if (ntop  == MPI_PROC_NULL) jhgh = jsize+nhalo;
+   }
+   int jnum = jhgh-jlow;
+   int bufsize = jnum*nhalo;
+
+   double xbuf_left_send[bufsize];
+   double xbuf_rght_send[bufsize];
+   double xbuf_rght_recv[bufsize];
+   double xbuf_left_recv[bufsize];
+
    int position_left = 0;
    int position_right = 0;
-   for (int j = 0; j < jsize; j++){
-      MPI_Pack(&x[j][0],           nhalo, MPI_DOUBLE, xbuf_left_send,  jsize*nhalo*sizeof(double), &position_left,  MPI_COMM_WORLD);
-      MPI_Pack(&x[j][isize-nhalo], nhalo, MPI_DOUBLE, xbuf_right_send, jsize*nhalo*sizeof(double), &position_right, MPI_COMM_WORLD);
+
+   for (int j = jlow; j < jhgh; j++){
+      MPI_Pack(&x[j][0],           nhalo, MPI_DOUBLE, xbuf_left_send, bufsize*sizeof(double), &position_left,  MPI_COMM_WORLD);
+      MPI_Pack(&x[j][isize-nhalo], nhalo, MPI_DOUBLE, xbuf_rght_send, bufsize*sizeof(double), &position_right, MPI_COMM_WORLD);
    }
 
-   MPI_Irecv(&xbuf_right_recv, position_left,  MPI_PACKED, nrght, 1001, MPI_COMM_WORLD, &request[0]);
-   MPI_Isend(&xbuf_left_send,  position_left,  MPI_PACKED, nleft, 1001, MPI_COMM_WORLD, &request[1]);
+   MPI_Irecv(&xbuf_rght_recv, position_left,  MPI_PACKED, nrght, 1001, MPI_COMM_WORLD, &request[0]);
+   MPI_Isend(&xbuf_left_send, position_left,  MPI_PACKED, nleft, 1001, MPI_COMM_WORLD, &request[1]);
 
-   MPI_Irecv(&xbuf_left_recv,  position_right, MPI_PACKED, nleft, 1002, MPI_COMM_WORLD, &request[2]);
-   MPI_Isend(&xbuf_right_send, position_right, MPI_PACKED, nrght, 1002, MPI_COMM_WORLD, &request[3]);
+   MPI_Irecv(&xbuf_left_recv, position_right, MPI_PACKED, nleft, 1002, MPI_COMM_WORLD, &request[2]);
+   MPI_Isend(&xbuf_rght_send, position_right, MPI_PACKED, nrght, 1002, MPI_COMM_WORLD, &request[3]);
    MPI_Waitall(4, request, status);
 
    position_left = 0;
    position_right = 0;
-   for (int j = 0; j < jsize; j++){
-      MPI_Unpack(xbuf_right_recv, jsize*nhalo*sizeof(double), &position_right,  &x[j][isize],  nhalo, MPI_DOUBLE, MPI_COMM_WORLD);
-      MPI_Unpack(xbuf_left_recv,  jsize*nhalo*sizeof(double), &position_left,   &x[j][-nhalo], nhalo, MPI_DOUBLE, MPI_COMM_WORLD);
+   for (int j = jlow; j < jhgh; j++){
+      MPI_Unpack(xbuf_rght_recv, bufsize*sizeof(double), &position_right, &x[j][isize],  nhalo, MPI_DOUBLE, MPI_COMM_WORLD);
+      MPI_Unpack(xbuf_left_recv, bufsize*sizeof(double), &position_left,  &x[j][-nhalo], nhalo, MPI_DOUBLE, MPI_COMM_WORLD);
    }
 
    if (corners) {
-      MPI_Irecv(&x[jsize][-nhalo],   nhalo*(isize+2*nhalo), MPI_DOUBLE, ntop, 1001, MPI_COMM_WORLD, &request[0]);
-      MPI_Isend(&x[0    ][-nhalo],   nhalo*(isize+2*nhalo), MPI_DOUBLE, nbot, 1001, MPI_COMM_WORLD, &request[1]);
+      bufsize = nhalo*(isize+2*nhalo);
+      MPI_Irecv(&x[jsize][-nhalo],   bufsize, MPI_DOUBLE, ntop, 1001, MPI_COMM_WORLD, &request[0]);
+      MPI_Isend(&x[0    ][-nhalo],   bufsize, MPI_DOUBLE, nbot, 1001, MPI_COMM_WORLD, &request[1]);
 
-      MPI_Irecv(&x[     -nhalo][-nhalo], nhalo*(isize+2*nhalo), MPI_DOUBLE, nbot, 1002, MPI_COMM_WORLD, &request[2]);
-      MPI_Isend(&x[jsize-nhalo][-nhalo], nhalo*(isize+2*nhalo), MPI_DOUBLE, ntop, 1002, MPI_COMM_WORLD, &request[3]);
+      MPI_Irecv(&x[     -nhalo][-nhalo], bufsize, MPI_DOUBLE, nbot, 1002, MPI_COMM_WORLD, &request[2]);
+      MPI_Isend(&x[jsize-nhalo][-nhalo], bufsize, MPI_DOUBLE, ntop, 1002, MPI_COMM_WORLD, &request[3]);
       MPI_Waitall(4, request, status);
    } else {
       for (int j = 0; j<nhalo; j++){

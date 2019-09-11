@@ -57,8 +57,15 @@ int main(int argc, char *argv[])
    int jend   = jmax *(coords[0]+1)/dims[0];
    int jsize  = jend - jbegin;
 
+   int jlow=0, jhgh=jsize;
+   if (corners) {
+      if (nbot == MPI_PROC_NULL) jlow = -nhalo;
+      if (ntop  == MPI_PROC_NULL) jhgh = jsize+nhalo;
+   }   
+   int jnum = jhgh-jlow;
+
    MPI_Datatype cart_col;
-   MPI_Type_vector(jsize, nhalo, isize+2*nhalo, MPI_DOUBLE, &cart_col);
+   MPI_Type_vector(jnum, nhalo, isize+2*nhalo, MPI_DOUBLE, &cart_col);
    MPI_Type_commit(&cart_col);
 
    MPI_Datatype cart_row;
@@ -77,6 +84,14 @@ int main(int argc, char *argv[])
    // This offsets the array addressing so that the real part of the array is from 0,0 to jsize,isize
    double** x    = malloc2D(jsize+2*nhalo, isize+2*nhalo, nhalo, nhalo);
    double** xnew = malloc2D(jsize+2*nhalo, isize+2*nhalo, nhalo, nhalo);
+
+   if (! corners) { // need to initialize when not doing corners so there is no uninitialized memory
+      for (int j = -nhalo; j < jsize+nhalo; j++){
+         for (int i = -nhalo; i < isize+nhalo; i++){
+            x[j][i] = 0.0;
+         }
+      }
+   }
 
    for (int j = 0; j < jsize; j++){
       for (int i = 0; i < isize; i++){
@@ -138,32 +153,32 @@ void boundarycondition_update(double **x, int nhalo, int jsize, int isize, int n
 // Boundary conditions -- constant
    if (nleft == MPI_PROC_NULL){
       for (int j = 0; j < jsize; j++){
-         for (int k=-nhalo; k<0; k++){
-            x[j][k] = x[j][0];
+         for (int ll=-nhalo; ll<0; ll++){
+            x[j][ll] = x[j][0];
          }
       }
    }
 
    if (nrght == MPI_PROC_NULL){
       for (int j = 0; j < jsize; j++){
-         for (int k=0; k<nhalo; k++){
-            x[j][isize+k] = x[j][isize-1];
+         for (int ll=0; ll<nhalo; ll++){
+            x[j][isize+ll] = x[j][isize-1];
          }
       }
    }
 
    if (nbot == MPI_PROC_NULL){
-      for (int i = -nhalo; i < isize+nhalo; i++){
-         for (int k=-nhalo; k<0; k++){
-            x[k][i] = x[0][i];
+      for (int ll=-nhalo; ll<0; ll++){
+         for (int i = -nhalo; i < isize+nhalo; i++){
+            x[ll][i] = x[0][i];
          }
       }
    }
       
    if (ntop == MPI_PROC_NULL){
-      for (int i = -nhalo; i < isize+nhalo; i++){
-         for (int k=0; k<nhalo; k++){
-            x[jsize+k][i] = x[jsize-1][i];
+      for (int ll=0; ll<nhalo; ll++){
+         for (int i = -nhalo; i < isize+nhalo; i++){
+            x[jsize+ll][i] = x[jsize-1][i];
          }
       }
    }
@@ -182,11 +197,18 @@ void ghostcell_update(double **x, int nhalo, int corners, int jsize, int isize,
    MPI_Request request[8];
    MPI_Status status[8];
 
-   MPI_Irecv(&x[0][isize], 1,  cart_col, nrght, 1001, MPI_COMM_WORLD, &request[0]);
-   MPI_Isend(&x[0][0],     1,  cart_col, nleft, 1001, MPI_COMM_WORLD, &request[1]);
+   int jlow=0, jhgh=jsize;
+   if (corners) {
+      if (nbot == MPI_PROC_NULL) jlow = -nhalo;
+      if (ntop  == MPI_PROC_NULL) jhgh = jsize+nhalo;
+   }
+   int jnum = jhgh-jlow;
 
-   MPI_Irecv(&x[0][-nhalo],      1, cart_col, nleft, 1002, MPI_COMM_WORLD, &request[2]);
-   MPI_Isend(&x[0][isize-nhalo], 1, cart_col, nrght, 1002, MPI_COMM_WORLD, &request[3]);
+   MPI_Irecv(&x[jlow][isize], 1,  cart_col, nrght, 1001, MPI_COMM_WORLD, &request[0]);
+   MPI_Isend(&x[jlow][0],     1,  cart_col, nleft, 1001, MPI_COMM_WORLD, &request[1]);
+
+   MPI_Irecv(&x[jlow][-nhalo],      1, cart_col, nleft, 1002, MPI_COMM_WORLD, &request[2]);
+   MPI_Isend(&x[jlow][isize-nhalo], 1, cart_col, nrght, 1002, MPI_COMM_WORLD, &request[3]);
 
    int waitcount;
 

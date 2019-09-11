@@ -149,32 +149,32 @@ void boundarycondition_update(double **x, int nhalo, int jsize, int isize, int n
 // Boundary conditions -- constant
    if (nleft == MPI_PROC_NULL){
       for (int j = 0; j < jsize; j++){
-         for (int k=-nhalo; k<0; k++){
-            x[j][k] = x[j][0];
+         for (int ll=-nhalo; ll<0; ll++){
+            x[j][ll] = x[j][0];
          }
       }
    }
 
    if (nrght == MPI_PROC_NULL){
       for (int j = 0; j < jsize; j++){
-         for (int k=0; k<nhalo; k++){
-            x[j][isize+k] = x[j][isize-1];
+         for (int ll=0; ll<nhalo; ll++){
+            x[j][isize+ll] = x[j][isize-1];
          }
       }
    }
 
    if (nbot == MPI_PROC_NULL){
-      for (int i = -nhalo; i < isize+nhalo; i++){
-         for (int k=-nhalo; k<0; k++){
-            x[k][i] = x[0][i];
+      for (int ll=-nhalo; ll<0; ll++){
+         for (int i = -nhalo; i < isize+nhalo; i++){
+            x[ll][i] = x[0][i];
          }
       }
    }
       
    if (ntop == MPI_PROC_NULL){
-      for (int i = -nhalo; i < isize+nhalo; i++){
-         for (int k=0; k<nhalo; k++){
-            x[jsize+k][i] = x[jsize-1][i];
+      for (int ll=0; ll<nhalo; ll++){
+         for (int i = -nhalo; i < isize+nhalo; i++){
+            x[jsize+ll][i] = x[jsize-1][i];
          }
       }
    }
