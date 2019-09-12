@@ -174,7 +174,7 @@ void ghostcell_update(double **x, int nhalo, int corners, int jsize, int isize, 
    int jlow=0, jhgh=jsize;
    if (corners) {
       if (nbot == MPI_PROC_NULL) jlow = -nhalo;
-      if (ntop  == MPI_PROC_NULL) jhgh = jsize+nhalo;
+      if (ntop == MPI_PROC_NULL) jhgh = jsize+nhalo;
    }
    int jnum = jhgh-jlow;
    int bufsize = jnum*nhalo;
