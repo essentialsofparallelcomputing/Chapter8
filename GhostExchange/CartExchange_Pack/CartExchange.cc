@@ -8,7 +8,7 @@
 #include "timer.h"
 
 #define SWAP_PTR(xnew,xold,xtmp) (xtmp=xnew, xnew=xold, xold=xtmp)
-void parse_input_args(int argc, char **argv, int &jmax, int &imax, int &nprocy, int &nprocx, int &nhalo, int &do_timing);
+void parse_input_args(int argc, char **argv, int &jmax, int &imax, int &nprocy, int &nprocx, int &nhalo, int &corners, int &do_timing);
 void Cartesian_print(MPI_Comm cart_comm, double **x, int jmax, int imax, int nhalo);
 void boundarycondition_update(double **x, int nhalo, int jsize, int isize, int nleft, int nrght, int nbot, int ntop);
 void ghostcell_update(MPI_Comm cart_comm, double **x, int nhalo, int jsize, int isize,
@@ -29,10 +29,10 @@ int main(int argc, char *argv[])
 
    int imax = 2000, jmax = 2000;
    int nprocx = 0, nprocy = 0;
-   int nhalo = 2;
+   int nhalo = 2, corners = 0;
    int do_timing = 0;
 
-   parse_input_args(argc, argv, jmax, imax, nprocy, nprocx, nhalo, do_timing);
+   parse_input_args(argc, argv, jmax, imax, nprocy, nprocx, nhalo, corners, do_timing);
  
    struct timespec tstart_stencil, tstart_total;
    double stencil_time=0.0, total_time;
@@ -68,12 +68,9 @@ int main(int argc, char *argv[])
    double** x    = malloc2D(jsize+2*nhalo, isize+2*nhalo, nhalo, nhalo);
    double** xnew = malloc2D(jsize+2*nhalo, isize+2*nhalo, nhalo, nhalo);
 
-   if (! corners) { // need to initialize when not doing corners so there is no uninitialized memory
-      for (int j = -nhalo; j < jsize+nhalo; j++){
-         for (int i = -nhalo; i < isize+nhalo; i++){
-            x[j][i] = 0.0;
-         }
-      }
+   if (! corners) { // MPI_Ineighbor_alltoallv does not handle corners easily
+      printf("Error -- MPI_Ineighbor_alltoallv\n");
+      exit(0);
    }
 
    for (int j = 0; j < jsize; j++){
@@ -288,7 +285,7 @@ void haloupdate_test(MPI_Comm cart_comm, int nhalo, int jsize, int isize, int nl
    malloc2D_free(x, nhalo);
 }
 
-void parse_input_args(int argc, char **argv, int &jmax, int &imax, int &nprocy, int &nprocx, int &nhalo, int &do_timing)
+void parse_input_args(int argc, char **argv, int &jmax, int &imax, int &nprocy, int &nprocx, int &nhalo, int &corners, int &do_timing)
 {
    int c;
    int rank;
