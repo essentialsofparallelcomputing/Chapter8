@@ -78,8 +78,11 @@ int main(int argc, char *argv[])
       }
    }
 
-   for (int j = jmax/2 - 5; j < jmax/2 + 5; j++){
-      for (int i = imax/2 - 5; i < imax/2 + 5; i++){
+   int ispan=5, jspan=5;
+   if (ispan > imax/2) ispan = imax/2;
+   if (jspan > jmax/2) jspan = jmax/2;
+   for (int j = jmax/2 - jspan; j < jmax/2 + jspan; j++){
+      for (int i = imax/2 - ispan; i < imax/2 + ispan; i++){
          if (j >= jbegin && j < jend && i >= ibegin && i < iend) {
             x[j-jbegin][i-ibegin] = 400.0;
          }
