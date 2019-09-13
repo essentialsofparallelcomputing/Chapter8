@@ -65,27 +65,12 @@ int main(int argc, char *argv[])
    int zcoord = rank/(nprocx*nprocy);
    //printf("%d:DEBUG -- xcoord %d ycoord %d zcoord %d\n",rank,xcoord,ycoord,zcoord);
    
-   int dims[3] = {nprocz, nprocy, nprocx}; // needs to be initialized
-   int periods[3]={0,0,0};
-   int coords[3];
-   MPI_Dims_create(nprocs, 3, dims);
-   MPI_Comm cart_comm;
-   MPI_Cart_create(MPI_COMM_WORLD, 3, dims, periods, 0, &cart_comm);
-   MPI_Cart_coords(cart_comm, rank, 3, coords);
-   //printf("%d:DEBUG -- xcoord %d ycoord %d zcoord %d\n",rank,coords[2],coords[1],coords[0]);
-
    int nleft = (xcoord > 0       ) ? rank - 1      : MPI_PROC_NULL;
    int nrght = (xcoord < nprocx-1) ? rank + 1      : MPI_PROC_NULL;
    int nbot  = (ycoord > 0       ) ? rank - nprocx : MPI_PROC_NULL;
    int ntop  = (ycoord < nprocy-1) ? rank + nprocx : MPI_PROC_NULL;
    int nfrnt = (zcoord > 0       ) ? rank - nprocx * nprocy : MPI_PROC_NULL;
    int nback = (zcoord < nprocz-1) ? rank + nprocx * nprocy : MPI_PROC_NULL;
-   //printf("%d:DEBUG -- nleft %d nrght %d nbot %d ntop %d nfrnt %d nback %d\n",rank,nleft,nrght,nbot,ntop,nfrnt,nback);
-
-   //int nleft, nrght, nbot, ntop, nfrnt, nback;
-   //MPI_Cart_shift(cart_comm, 2, 1, &nleft, &nrght);
-   //MPI_Cart_shift(cart_comm, 1, 1, &nbot,  &ntop);
-   //MPI_Cart_shift(cart_comm, 0, 1, &nfrnt, &nback);
    //printf("%d:DEBUG -- nleft %d nrght %d nbot %d ntop %d nfrnt %d nback %d\n",rank,nleft,nrght,nbot,ntop,nfrnt,nback);
 
    int ibegin = imax *(xcoord  )/nprocx;
