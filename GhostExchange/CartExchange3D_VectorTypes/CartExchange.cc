@@ -216,7 +216,7 @@ int main(int argc, char *argv[])
    Cartesian_print(x, kmax, jmax, imax, nhalo, nproc);
 
    if (rank == 0){
-      printf("GhostExchange_ArrayAssign Timing is stencil %f boundary condition %f ghost cell %lf total %f\n",
+      printf("CartExchange3D_VectorTypes Timing is stencil %f boundary condition %f ghost cell %lf total %f\n",
              stencil_time,boundarycondition_time,ghostcell_time,total_time);
    }
 

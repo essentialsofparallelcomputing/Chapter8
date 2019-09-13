@@ -133,7 +133,7 @@ int main(int argc, char *argv[])
    Cartesian_print(cart_comm, x, jmax, imax, nhalo);
 
    if (rank == 0){
-      printf("CartExchange_VectorType Timing is stencil %f boundary condition %f ghost cell %lf total %f\n",
+      printf("CartExchange_VectorTypes Timing is stencil %f boundary condition %f ghost cell %lf total %f\n",
              stencil_time,boundarycondition_time,ghostcell_time,total_time);
    }
 

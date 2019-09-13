@@ -69,7 +69,8 @@ int main(int argc, char *argv[])
    double** xnew = malloc2D(jsize+2*nhalo, isize+2*nhalo, nhalo, nhalo);
 
    if (! corners) { // MPI_Ineighbor_alltoallv does not handle corners easily
-      printf("Error -- MPI_Ineighbor_alltoallv\n");
+      if (rank == 0) printf("Error -- MPI_Ineighbor_alltoallv\n");
+      MPI_Finalize();
       exit(0);
    }
 

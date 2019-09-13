@@ -1,5 +1,5 @@
 #!/bin/sh
-for i in GhostExchange* CartExchange*
+for i in GhostExchange_* CartExchange_* GhostExchange3D* CartExchange3D*
 do
    echo $i
    echo -n "Median: "; grep Timing results.txt | grep $i | cut -f11 -d' ' | sort -n | awk '{arr[NR]=$1}

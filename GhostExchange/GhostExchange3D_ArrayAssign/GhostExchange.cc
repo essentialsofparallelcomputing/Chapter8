@@ -190,7 +190,7 @@ int main(int argc, char *argv[])
    Cartesian_print(x, kmax, jmax, imax, nhalo, nproc);
 
    if (rank == 0){
-      printf("GhostExchange_ArrayAssign Timing is stencil %f boundary condition %f ghost cell %lf total %f\n",
+      printf("GhostExchange3D_ArrayAssign Timing is stencil %f boundary condition %f ghost cell %lf total %f\n",
              stencil_time,boundarycondition_time,ghostcell_time,total_time);
    }
 
@@ -723,8 +723,6 @@ void Cartesian_print(double ***x, int kmax, int jmax, int imax, int nhalo, struc
          if (rank == 0) printf("\n");
       }
    }
-   MPI_Finalize();
-   exit(0);
    if (rank == 0) printf("k-i plane\n");
    for (int jj=0; jj < nprocy; jj++){
       int jlen = 0;
