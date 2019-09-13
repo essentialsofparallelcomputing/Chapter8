@@ -40,6 +40,8 @@ void haloupdate_test(int nhalo, int corners, struct sizes size, struct neighs ng
 
 double boundarycondition_time=0.0, ghostcell_time=0.0;
 
+MPI_Datatype horiz_type, vert_type, depth_type;
+
 int main(int argc, char *argv[])
 {
    MPI_Init(&argc, &argv);
@@ -119,6 +121,40 @@ int main(int argc, char *argv[])
    nproc.y = nprocy;
    nproc.z = nprocz;
 
+   int array_sizes[] = {ksize+2*nhalo, jsize+2*nhalo, isize+2*nhalo};
+   if (corners) {
+      int subarray_starts[] = {0, 0, 0};
+      int hsubarray_sizes[] = {ksize+2*nhalo, jsize+2*nhalo, nhalo};
+      MPI_Type_create_subarray(3, array_sizes, hsubarray_sizes, subarray_starts, MPI_ORDER_C, MPI_DOUBLE, &horiz_type);
+      MPI_Type_commit(&horiz_type);
+
+      int vsubarray_sizes[] = {ksize+2*nhalo, nhalo, isize+2*nhalo};
+      MPI_Type_create_subarray(3, array_sizes, vsubarray_sizes, subarray_starts, MPI_ORDER_C, MPI_DOUBLE, &vert_type);
+      MPI_Type_commit(&vert_type);
+
+      int dsubarray_sizes[] = {nhalo, jsize+2*nhalo, isize+2*nhalo};
+      MPI_Type_create_subarray(3, array_sizes, dsubarray_sizes, subarray_starts, MPI_ORDER_C, MPI_DOUBLE, &depth_type);
+      MPI_Type_commit(&depth_type);
+
+
+   } else {
+      int hsubarray_starts[] = {nhalo,nhalo,0};
+      int hsubarray_sizes[] = {ksize, jsize, nhalo};
+      MPI_Type_create_subarray(3, array_sizes, hsubarray_sizes, hsubarray_starts, MPI_ORDER_C, MPI_DOUBLE, &horiz_type);
+      MPI_Type_commit(&horiz_type);
+
+      int vsubarray_starts[] = {nhalo, 0, nhalo};
+      int vsubarray_sizes[] = {ksize, nhalo, isize};
+      MPI_Type_create_subarray(3, array_sizes, vsubarray_sizes, vsubarray_starts, MPI_ORDER_C, MPI_DOUBLE, &vert_type);
+      MPI_Type_commit(&vert_type);
+
+      int dsubarray_starts[] = {0, nhalo, nhalo};
+      int dsubarray_sizes[] = {nhalo, ksize, isize};
+      MPI_Type_create_subarray(3, array_sizes, dsubarray_sizes, dsubarray_starts, MPI_ORDER_C, MPI_DOUBLE, &depth_type);
+      MPI_Type_commit(&depth_type);
+   }
+
+
    /* The halo update both updates the ghost cells and the boundary halo cells. To be precise with terminology,
     * the ghost cells only exist for multi-processor runs with MPI. The boundary halo cells are to set boundary
     * conditions. Halos refer to both the ghost cells and the boundary halo cells.
@@ -194,6 +230,10 @@ int main(int argc, char *argv[])
              stencil_time,boundarycondition_time,ghostcell_time,total_time);
    }
 
+   MPI_Type_free(&horiz_type);
+   MPI_Type_free(&vert_type);
+   MPI_Type_free(&depth_type);
+
    MPI_Finalize();
    exit(0);
 }
@@ -207,65 +247,69 @@ void boundarycondition_update(double ***x, int nhalo, struct sizes size, struct 
    int jsize = size.j;
    int ksize = size.k;
 
-   int rank;
-   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+   int nleft = ngh.left;
+   int nrght = ngh.rght;
+   int nbot = ngh.bot;
+   int ntop = ngh.top;
+   int nfrnt = ngh.frnt;
+   int nback = ngh.back;
 
 // Boundary conditions -- constant
-   if (ngh.left == MPI_PROC_NULL){
-      for (int k = 0; k < ksize; k++){
-         for (int j = 0; j < jsize; j++){
-            for (int l=-nhalo; l<0; l++){
-               x[k][j][l] = x[k][j][0];
+   if (nleft == MPI_PROC_NULL){
+      for (int k = -nhalo; k < ksize+nhalo; k++){
+         for (int j = -nhalo; j < jsize+nhalo; j++){
+            for (int ll=-nhalo; ll<0; ll++){
+               x[k][j][ll] = x[k][j][0];
             }
          }
       }
    }
 
-   if (ngh.rght == MPI_PROC_NULL){
-      for (int k = 0; k < ksize; k++){
-         for (int j = 0; j < jsize; j++){
-            for (int l=0; l<nhalo; l++){
-               x[k][j][isize+l] = x[k][j][isize-1];
+   if (nrght == MPI_PROC_NULL){
+      for (int k = -nhalo; k < ksize+nhalo; k++){
+         for (int j = -nhalo; j < jsize+nhalo; j++){
+            for (int ll=0; ll<nhalo; ll++){
+               x[k][j][isize+ll] = x[k][j][isize-1];
             }
          }
       }
    }
 
-   if (ngh.bot == MPI_PROC_NULL){
-      for (int k = 0; k < ksize; k++){
-         for (int l=-nhalo; l<0; l++){
+   if (nbot == MPI_PROC_NULL){
+      for (int k = -nhalo; k < ksize+nhalo; k++){
+         for (int ll=-nhalo; ll<0; ll++){
             for (int i = -nhalo; i < isize+nhalo; i++){
-               x[k][l][i] = x[k][0][i];
+               x[k][ll][i] = x[k][0][i];
             }
          }
       }
    }
       
-   if (ngh.top == MPI_PROC_NULL){
-      for (int k = 0; k < ksize; k++){
-         for (int l=0; l<nhalo; l++){
+   if (ntop == MPI_PROC_NULL){
+      for (int k = -nhalo; k < ksize+nhalo; k++){
+         for (int ll=0; ll<nhalo; ll++){
             for (int i = -nhalo; i < isize+nhalo; i++){
-               x[k][jsize+l][i] = x[k][jsize-1][i];
+               x[k][jsize+ll][i] = x[k][jsize-1][i];
             }
          }
       }
    }
 
-   if (ngh.frnt == MPI_PROC_NULL){
-      for (int l=0; l<nhalo; l++){
+   if (nfrnt == MPI_PROC_NULL){
+      for (int ll=-nhalo; ll<0; ll++){
          for (int j = -nhalo; j < jsize+nhalo; j++){
             for (int i = -nhalo; i < isize+nhalo; i++){
-               x[l][j][i] = x[0][j][i];
+               x[ll][j][i] = x[0][j][i];
             }
          }
       }
    }
       
-   if (ngh.back == MPI_PROC_NULL){
-      for (int l=0; l<nhalo; l++){
+   if (nback == MPI_PROC_NULL){
+      for (int ll=0; ll<nhalo; ll++){
          for (int j = -nhalo; j < jsize+nhalo; j++){
             for (int i = -nhalo; i < isize+nhalo; i++){
-               x[ksize+l][j][i] = x[ksize-1][j][i];
+               x[ksize+ll][j][i] = x[ksize-1][j][i];
             }
          }
       }
@@ -286,8 +330,12 @@ void ghostcell_update(double ***x, int nhalo, int corners, struct sizes size, st
    int nprocy = nproc.y;
    int nprocz = nproc.z;
 
-   int rank;
-   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+   int nleft = ngh.left;
+   int nrght = ngh.rght;
+   int nbot = ngh.bot;
+   int ntop = ngh.top;
+   int nfrnt = ngh.frnt;
+   int nback = ngh.back;
 
    int icount, bufsize;
 
@@ -297,198 +345,26 @@ void ghostcell_update(double ***x, int nhalo, int corners, struct sizes size, st
    MPI_Request request[4*nhalo];
    MPI_Status status[4*nhalo];
 
-   int maxplane = 0;
-   int planesize = (jsize+2*nhalo)*(ksize+2*nhalo);
-   if (nprocx > 1 && planesize > maxplane) maxplane = planesize;
-   planesize = (isize+2*nhalo)*(ksize+2*nhalo);
-   if (nprocy > 1 && planesize > maxplane) maxplane = planesize;
-   planesize = (isize+2*nhalo)*(jsize+2*nhalo);
-   if (nprocz > 1 && planesize > maxplane) maxplane = planesize;
+   MPI_Irecv(&x[-nhalo][-nhalo][isize],   1, horiz_type, nrght, 1001, MPI_COMM_WORLD, &request[0]);
+   MPI_Isend(&x[-nhalo][-nhalo][0],       1, horiz_type, nleft, 1001, MPI_COMM_WORLD, &request[1]);
 
-   bufsize = nhalo*maxplane;
-
-   double xbuf_low_send[bufsize];
-   double xbuf_hgh_send[bufsize];
-   double xbuf_low_recv[bufsize];
-   double xbuf_hgh_recv[bufsize];
-
-   int jlow=0, jhgh=jsize, jnum;
-   if (corners) {
-      if (ngh.left == MPI_PROC_NULL) jlow = -nhalo;
-      if (ngh.rght == MPI_PROC_NULL) jhgh = jsize+nhalo;
-   }
-   jnum = jhgh-jlow;
-   bufsize = ksize*jnum*nhalo;
-
-   if (ngh.left != MPI_PROC_NULL){
-      icount = 0;
-      for (int k = 0; k < ksize; k++){
-         for (int j = jlow; j < jhgh; j++){
-            for (int l = 0; l < nhalo; l++){
-               xbuf_low_send[icount++] = x[k][j][l];
-            }
-         }
-      }
-   }
-   if (ngh.rght != MPI_PROC_NULL){
-      icount = 0;
-      for (int k = 0; k < ksize; k++){
-         for (int j = jlow; j < jhgh; j++){
-            for (int l = 0; l < nhalo; l++){
-               xbuf_hgh_send[icount++] = x[k][j][isize-nhalo+l];
-            }
-         }
-      }
-   }
-
-   MPI_Irecv(&xbuf_hgh_recv, bufsize, MPI_DOUBLE, ngh.rght, 1001, MPI_COMM_WORLD, &request[0]);
-   MPI_Isend(&xbuf_low_send, bufsize, MPI_DOUBLE, ngh.left, 1001, MPI_COMM_WORLD, &request[1]);
-
-   MPI_Irecv(&xbuf_low_recv, bufsize, MPI_DOUBLE, ngh.left, 1002, MPI_COMM_WORLD, &request[2]);
-   MPI_Isend(&xbuf_hgh_send, bufsize, MPI_DOUBLE, ngh.rght, 1002, MPI_COMM_WORLD, &request[3]);
+   MPI_Irecv(&x[-nhalo][-nhalo][-nhalo],  1, horiz_type, nleft, 1002, MPI_COMM_WORLD, &request[2]);
+   MPI_Isend(&x[-nhalo][-nhalo][isize-1], 1, horiz_type, nrght, 1002, MPI_COMM_WORLD, &request[3]);
    MPI_Waitall(4, request, status);
 
-   if (ngh.rght != MPI_PROC_NULL){
-      icount = 0;
-      for (int k = 0; k < ksize; k++){
-         for (int j = jlow; j < jhgh; j++){
-            for (int l = 0; l < nhalo; l++){
-               x[k][j][isize+l] = xbuf_hgh_recv[icount++];
-            }
-         }
-      }
-   }
-   if (ngh.left != MPI_PROC_NULL){
-      icount = 0;
-      for (int k = 0; k < ksize; k++){
-         for (int j = jlow; j < jhgh; j++){
-            for (int l = 0; l < nhalo; l++){
-               x[k][j][-nhalo+l] = xbuf_low_recv[icount++];
-            }
-         }
-      }
-   }
+   MPI_Irecv(&x[-nhalo][jsize][-nhalo],   1, vert_type, ntop, 1003, MPI_COMM_WORLD, &request[0]);
+   MPI_Isend(&x[-nhalo][0][-nhalo],       1, vert_type, nbot, 1003, MPI_COMM_WORLD, &request[1]);
 
-   int ilow, ihgh, inum;
-   if (corners) {
-      ilow = -nhalo;
-      ihgh = isize+nhalo;
-      inum = isize+2*nhalo;
-   } else {
-      ilow = 0;
-      ihgh = isize;
-      inum = isize;
-   }
-   bufsize = ksize*inum*nhalo;
-
-   if (ngh.bot != MPI_PROC_NULL){
-      icount = 0;
-      for (int k = 0; k < ksize; k++){
-         for (int l = 0; l < nhalo; l++){
-            for (int i = ilow; i < ihgh; i++){
-               xbuf_low_send[icount++] = x[k][l][i];
-            }
-         }
-      }
-   }
-   if (ngh.top != MPI_PROC_NULL){
-      icount = 0;
-      for (int k = 0; k < ksize; k++){
-         for (int l = 0; l < nhalo; l++){
-            for (int i = ilow; i < ihgh; i++){
-               xbuf_hgh_send[icount++] = x[k][jsize-nhalo+l][i];
-            }
-         }
-      }
-   }
-
-   MPI_Irecv(&xbuf_hgh_recv, bufsize, MPI_DOUBLE, ngh.top, 1003, MPI_COMM_WORLD, &request[0]);
-   MPI_Isend(&xbuf_low_send, bufsize, MPI_DOUBLE, ngh.bot, 1003, MPI_COMM_WORLD, &request[1]);
-
-   MPI_Irecv(&xbuf_low_recv, bufsize, MPI_DOUBLE, ngh.bot, 1004, MPI_COMM_WORLD, &request[2]);
-   MPI_Isend(&xbuf_hgh_send, bufsize, MPI_DOUBLE, ngh.top, 1004, MPI_COMM_WORLD, &request[3]);
+   MPI_Irecv(&x[-nhalo][-nhalo][-nhalo],  1, vert_type, nbot, 1004, MPI_COMM_WORLD, &request[2]);
+   MPI_Isend(&x[-nhalo][jsize-1][-nhalo], 1, vert_type, ntop, 1004, MPI_COMM_WORLD, &request[3]);
    MPI_Waitall(4, request, status);
 
-   if (ngh.top != MPI_PROC_NULL){
-      icount = 0;
-      for (int k = 0; k < ksize; k++){
-         for (int l = 0; l < nhalo; l++){
-            for (int i = ilow; i < ihgh; i++){
-               x[k][jsize+l][i] = xbuf_hgh_recv[icount++];
-            }
-         }
-      }
-   }
-   if (ngh.bot != MPI_PROC_NULL){
-      icount = 0;
-      for (int k = 0; k < ksize; k++){
-         for (int l = 0; l < nhalo; l++){
-            for (int i = ilow; i < ihgh; i++){
-               x[k][-nhalo+l][i] = xbuf_low_recv[icount++];
-            }
-         }
-      }
-   }
+   MPI_Irecv(&x[ksize][-nhalo][-nhalo],   1, depth_type, nback, 1005, MPI_COMM_WORLD, &request[0]);
+   MPI_Isend(&x[0][-nhalo][-nhalo],       1, depth_type, nfrnt, 1005, MPI_COMM_WORLD, &request[1]);
 
-   if (corners) {
-      jlow = -nhalo;
-      jhgh = jsize+nhalo;
-      jnum = jsize+2*nhalo;
-   } else {
-      jlow = 0;
-      jhgh = jsize;
-      jnum = jsize;
-   }
-   bufsize = jnum*inum*nhalo;
-
-   if (ngh.frnt != MPI_PROC_NULL){
-      icount = 0;
-      for (int l = 0; l < nhalo; l++){
-         for (int j = jlow; j < jhgh; j++){
-            for (int i = ilow; i < ihgh; i++){
-               xbuf_low_send[icount++] = x[l][j][i];
-            }
-         }
-      }
-   }
-   if (ngh.back != MPI_PROC_NULL){
-      icount = 0;
-      for (int l = 0; l < nhalo; l++){
-         for (int j = jlow; j < jhgh; j++){
-            for (int i = ilow; i < ihgh; i++){
-               xbuf_hgh_send[icount++] = x[ksize-nhalo+l][j][i];
-            }
-         }
-      }
-   }
-
-   MPI_Irecv(&xbuf_hgh_recv, bufsize, MPI_DOUBLE, ngh.back, 1005, MPI_COMM_WORLD, &request[0]);
-   MPI_Isend(&xbuf_low_send, bufsize, MPI_DOUBLE, ngh.frnt, 1005, MPI_COMM_WORLD, &request[1]);
-
-   MPI_Irecv(&xbuf_low_recv, bufsize, MPI_DOUBLE, ngh.frnt, 1006, MPI_COMM_WORLD, &request[2]);
-   MPI_Isend(&xbuf_hgh_send, bufsize, MPI_DOUBLE, ngh.back, 1006, MPI_COMM_WORLD, &request[3]);
+   MPI_Irecv(&x[-nhalo][-nhalo][-nhalo],  1, depth_type, nfrnt, 1006, MPI_COMM_WORLD, &request[2]);
+   MPI_Isend(&x[ksize-1][-nhalo][-nhalo], 1, depth_type, nback, 1006, MPI_COMM_WORLD, &request[3]);
    MPI_Waitall(4, request, status);
-
-   if (ngh.back != MPI_PROC_NULL){
-      icount = 0;
-      for (int l = 0; l < nhalo; l++){
-         for (int j = jlow; j < jhgh; j++){
-            for (int i = ilow; i < ihgh; i++){
-               x[ksize+l][j][i] = xbuf_hgh_recv[icount++];
-            }
-         }
-      }
-   }
-   if (ngh.frnt != MPI_PROC_NULL){
-      icount = 0;
-      for (int l = 0; l < nhalo; l++){
-         for (int j = jlow; j < jhgh; j++){
-            for (int i = ilow; i < ihgh; i++){
-               x[-nhalo+l][j][i] = xbuf_low_recv[icount++];
-            }
-         }
-      }
-   }
 
    if (do_timing) MPI_Barrier(MPI_COMM_WORLD);
 
@@ -750,5 +626,7 @@ void Cartesian_print(double ***x, int kmax, int jmax, int imax, int nhalo, struc
          }
       }
    }
+   MPI_Finalize();
+   exit(0);
    free(xrow);
 }

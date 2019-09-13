@@ -68,12 +68,9 @@ int main(int argc, char *argv[])
    double** x    = malloc2D(jsize+2*nhalo, isize+2*nhalo, nhalo, nhalo);
    double** xnew = malloc2D(jsize+2*nhalo, isize+2*nhalo, nhalo, nhalo);
 
-   if (! corners) { // need to initialize when not doing corners so there is no uninitialized memory
-      for (int j = -nhalo; j < jsize+nhalo; j++){
-         for (int i = -nhalo; i < isize+nhalo; i++){
-            x[j][i] = 0.0;
-         }
-      }
+   if (! corners) { // MPI_Ineighbor_alltoallv does not handle corners easily
+      printf("Error -- MPI_Ineighbor_alltoallv\n");
+      exit(0);
    }
 
    for (int j = 0; j < jsize; j++){
