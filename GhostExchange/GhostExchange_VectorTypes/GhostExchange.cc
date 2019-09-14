@@ -12,9 +12,9 @@ void parse_input_args(int argc, char **argv, int &jmax, int &imax, int &nprocy, 
 void Cartesian_print(double **x, int jmax, int imax, int nhalo, int nprocy, int nprocx);
 void boundarycondition_update(double **x, int nhalo, int jsize, int isize, int nleft, int nrght, int nbot, int ntop);
 void ghostcell_update(double **x, int nhalo, int corners, int jsize, int isize,
-      int nleft, int nrght, int nbot, int ntop, MPI_Datatype cart_col, MPI_Datatype cart_row, int do_timing);
+      int nleft, int nrght, int nbot, int ntop, MPI_Datatype horiz_type, MPI_Datatype vert_type, int do_timing);
 void haloupdate_test(int nhalo, int corners, int jsize, int isize, int nleft, int nrght, int nbot, int ntop,
-      int jmax, int imax, int nprocy, int nprocx, MPI_Datatype cart_col, MPI_Datatype cart_row, int do_timing);
+      int jmax, int imax, int nprocy, int nprocx, MPI_Datatype horiz_type, MPI_Datatype vert_type, int do_timing);
 
 double boundarycondition_time=0.0, ghostcell_time=0.0;
 
@@ -60,21 +60,23 @@ int main(int argc, char *argv[])
    }   
    int jnum = jhgh-jlow;
 
-   MPI_Datatype cart_col;
-   MPI_Type_vector(jnum, nhalo, isize+2*nhalo, MPI_DOUBLE, &cart_col);
-   MPI_Type_commit(&cart_col);
+   MPI_Datatype horiz_type;
+   MPI_Type_vector(jnum, nhalo, isize+2*nhalo, MPI_DOUBLE, &horiz_type);
+   MPI_Type_commit(&horiz_type);
 
-   MPI_Datatype cart_row;
+   MPI_Datatype vert_type;
    if (! corners){
-      MPI_Type_vector(nhalo, isize, isize+2*nhalo, MPI_DOUBLE, &cart_row);
-      MPI_Type_commit(&cart_row);
+      MPI_Type_vector(nhalo, isize, isize+2*nhalo, MPI_DOUBLE, &vert_type);
+   } else {
+      MPI_Type_contiguous(nhalo*(isize+2*nhalo), MPI_DOUBLE, &vert_type);
    }
+   MPI_Type_commit(&vert_type);
 
    /* The halo update both updates the ghost cells and the boundary halo cells. To be precise with terminology,
     * the ghost cells only exist for multi-processor runs with MPI. The boundary halo cells are to set boundary
     * conditions. Halos refer to both the ghost cells and the boundary halo cells.
     */
-   haloupdate_test(nhalo, corners, jsize, isize, nleft, nrght, nbot, ntop, jmax, imax, nprocy, nprocx, cart_col, cart_row, do_timing);
+   haloupdate_test(nhalo, corners, jsize, isize, nleft, nrght, nbot, ntop, jmax, imax, nprocy, nprocx, horiz_type, vert_type, do_timing);
 
    double** xtmp;
    // This offsets the array addressing so that the real part of the array is from 0,0 to jsize,isize
@@ -107,7 +109,7 @@ int main(int argc, char *argv[])
    }
 
    boundarycondition_update(x, nhalo, jsize, isize, nleft, nrght, nbot, ntop);
-   ghostcell_update(x, nhalo, corners, jsize, isize, nleft, nrght, nbot, ntop, cart_col, cart_row, do_timing);
+   ghostcell_update(x, nhalo, corners, jsize, isize, nleft, nrght, nbot, ntop, horiz_type, vert_type, do_timing);
 
    for (int iter = 0; iter < 1000; iter++){
       cpu_timer_start(&tstart_stencil);
@@ -123,7 +125,7 @@ int main(int argc, char *argv[])
       stencil_time += cpu_timer_stop(tstart_stencil);
 
       boundarycondition_update(x, nhalo, jsize, isize, nleft, nrght, nbot, ntop);
-      ghostcell_update(x, nhalo, corners, jsize, isize, nleft, nrght, nbot, ntop, cart_col, cart_row, do_timing);
+      ghostcell_update(x, nhalo, corners, jsize, isize, nleft, nrght, nbot, ntop, horiz_type, vert_type, do_timing);
 
       if (iter%100 == 0 && rank == 0) printf("Iter %d\n",iter);
    }
@@ -136,10 +138,9 @@ int main(int argc, char *argv[])
              stencil_time,boundarycondition_time,ghostcell_time,total_time);
    }
 
-   MPI_Type_free(&cart_col);
-   if (! corners){
-      MPI_Type_free(&cart_row);
-   }
+   MPI_Type_free(&horiz_type);
+   MPI_Type_free(&vert_type);
+
    MPI_Finalize();
    exit(0);
 }
@@ -186,48 +187,45 @@ void boundarycondition_update(double **x, int nhalo, int jsize, int isize, int n
 }
 
 void ghostcell_update(double **x, int nhalo, int corners, int jsize, int isize,
-      int nleft, int nrght, int nbot, int ntop, MPI_Datatype cart_col, MPI_Datatype cart_row, int do_timing)
+      int nleft, int nrght, int nbot, int ntop, MPI_Datatype horiz_type, MPI_Datatype vert_type, int do_timing)
 {
    if (do_timing) MPI_Barrier(MPI_COMM_WORLD);
 
    struct timespec tstart_ghostcell;
    cpu_timer_start(&tstart_ghostcell);
 
-   MPI_Request request[8];
-   MPI_Status status[8];
-
-   int jlow=0, jhgh=jsize;
+   int jlow=0, jhgh=jsize, ilow=0, waitcount=8, ib=4;
    if (corners) {
       if (nbot == MPI_PROC_NULL) jlow = -nhalo;
-      if (ntop  == MPI_PROC_NULL) jhgh = jsize+nhalo;
-   }
-   int jnum = jhgh-jlow;
-
-   MPI_Irecv(&x[jlow][isize], 1,  cart_col, nrght, 1001, MPI_COMM_WORLD, &request[0]);
-   MPI_Isend(&x[jlow][0],     1,  cart_col, nleft, 1001, MPI_COMM_WORLD, &request[1]);
-
-   MPI_Irecv(&x[jlow][-nhalo],      1, cart_col, nleft, 1002, MPI_COMM_WORLD, &request[2]);
-   MPI_Isend(&x[jlow][isize-nhalo], 1, cart_col, nrght, 1002, MPI_COMM_WORLD, &request[3]);
-
-   int waitcount;
-
-   if (corners) {
-      MPI_Waitall(4, request, status);
-
-      MPI_Irecv(&x[jsize][-nhalo],   nhalo*(isize+2*nhalo), MPI_DOUBLE, ntop, 1001, MPI_COMM_WORLD, &request[0]);
-      MPI_Isend(&x[0    ][-nhalo],   nhalo*(isize+2*nhalo), MPI_DOUBLE, nbot, 1001, MPI_COMM_WORLD, &request[1]);
-
-      MPI_Irecv(&x[     -nhalo][-nhalo], nhalo*(isize+2*nhalo), MPI_DOUBLE, nbot, 1002, MPI_COMM_WORLD, &request[2]);
-      MPI_Isend(&x[jsize-nhalo][-nhalo], nhalo*(isize+2*nhalo), MPI_DOUBLE, ntop, 1002, MPI_COMM_WORLD, &request[3]);
+      ilow = -nhalo;
       waitcount = 4;
-   } else {
-      MPI_Irecv(&x[jsize][0],   1, cart_row, ntop, 1001, MPI_COMM_WORLD, &request[4]);
-      MPI_Isend(&x[0    ][0],   1, cart_row, nbot, 1001, MPI_COMM_WORLD, &request[5]);
-
-      MPI_Irecv(&x[     -nhalo][0], 1, cart_row, nbot, 1002, MPI_COMM_WORLD, &request[6]);
-      MPI_Isend(&x[jsize-nhalo][0], 1, cart_row, ntop, 1002, MPI_COMM_WORLD, &request[7]);
-      waitcount = 8;
+      ib = 0;
    }
+
+   MPI_Request request[waitcount];
+   MPI_Status status[waitcount];
+
+   MPI_Irecv(&x[jlow][isize], 1, horiz_type, nrght, 1001, MPI_COMM_WORLD,
+             &request[0]);
+   MPI_Isend(&x[jlow][0],     1, horiz_type, nleft, 1001, MPI_COMM_WORLD,
+             &request[1]);
+
+   MPI_Irecv(&x[jlow][-nhalo],      1, horiz_type, nleft, 1002, MPI_COMM_WORLD,
+             &request[2]);
+   MPI_Isend(&x[jlow][isize-nhalo], 1, horiz_type, nrght, 1002, MPI_COMM_WORLD,
+             &request[3]);
+
+   if (corners) MPI_Waitall(4, request, status);
+
+   MPI_Irecv(&x[jsize][ilow],   1, vert_type, ntop, 1003, MPI_COMM_WORLD,
+             &request[ib+0]);
+   MPI_Isend(&x[0    ][ilow],   1, vert_type, nbot, 1003, MPI_COMM_WORLD,
+             &request[ib+1]);
+
+   MPI_Irecv(&x[     -nhalo][ilow], 1, vert_type, nbot, 1004, MPI_COMM_WORLD,
+             &request[ib+2]);
+   MPI_Isend(&x[jsize-nhalo][ilow], 1, vert_type, ntop, 1004, MPI_COMM_WORLD,
+             &request[ib+3]);
 
    MPI_Waitall(waitcount, request, status);
 
@@ -237,7 +235,7 @@ void ghostcell_update(double **x, int nhalo, int corners, int jsize, int isize,
 }
 
 void haloupdate_test(int nhalo, int corners, int jsize, int isize, int nleft, int nrght, int nbot, int ntop,
-      int jmax, int imax, int nprocy, int nprocx, MPI_Datatype cart_col, MPI_Datatype cart_row, int do_timing)
+      int jmax, int imax, int nprocy, int nprocx, MPI_Datatype horiz_type, MPI_Datatype vert_type, int do_timing)
 {
    int rank;
    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -258,7 +256,7 @@ void haloupdate_test(int nhalo, int corners, int jsize, int isize, int nleft, in
    }
 
    boundarycondition_update(x, nhalo, jsize, isize, nleft, nrght, nbot, ntop);
-   ghostcell_update(x, nhalo, corners, jsize, isize, nleft, nrght, nbot, ntop, cart_col, cart_row, do_timing);
+   ghostcell_update(x, nhalo, corners, jsize, isize, nleft, nrght, nbot, ntop, horiz_type, vert_type, do_timing);
 
    Cartesian_print(x, jmax, imax, nhalo, nprocy, nprocx);
 

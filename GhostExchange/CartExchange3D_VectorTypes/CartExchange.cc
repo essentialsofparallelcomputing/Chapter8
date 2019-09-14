@@ -115,32 +115,38 @@ int main(int argc, char *argv[])
    if (corners) {
       int subarray_starts[] = {0, 0, 0};
       int hsubarray_sizes[] = {ksize+2*nhalo, jsize+2*nhalo, nhalo};
-      MPI_Type_create_subarray(3, array_sizes, hsubarray_sizes, subarray_starts, MPI_ORDER_C, MPI_DOUBLE, &horiz_type);
+      MPI_Type_create_subarray(3, array_sizes, hsubarray_sizes, subarray_starts,
+                               MPI_ORDER_C, MPI_DOUBLE, &horiz_type);
       MPI_Type_commit(&horiz_type);
 
       int vsubarray_sizes[] = {ksize+2*nhalo, nhalo, isize+2*nhalo};
-      MPI_Type_create_subarray(3, array_sizes, vsubarray_sizes, subarray_starts, MPI_ORDER_C, MPI_DOUBLE, &vert_type);
+      MPI_Type_create_subarray(3, array_sizes, vsubarray_sizes, subarray_starts,
+                               MPI_ORDER_C, MPI_DOUBLE, &vert_type);
       MPI_Type_commit(&vert_type);
 
       int dsubarray_sizes[] = {nhalo, jsize+2*nhalo, isize+2*nhalo};
-      MPI_Type_create_subarray(3, array_sizes, dsubarray_sizes, subarray_starts, MPI_ORDER_C, MPI_DOUBLE, &depth_type);
+      MPI_Type_create_subarray(3, array_sizes, dsubarray_sizes, subarray_starts,
+                               MPI_ORDER_C, MPI_DOUBLE, &depth_type);
       MPI_Type_commit(&depth_type);
 
 
    } else {
       int hsubarray_starts[] = {nhalo,nhalo,0};
       int hsubarray_sizes[] = {ksize, jsize, nhalo};
-      MPI_Type_create_subarray(3, array_sizes, hsubarray_sizes, hsubarray_starts, MPI_ORDER_C, MPI_DOUBLE, &horiz_type);
+      MPI_Type_create_subarray(3, array_sizes, hsubarray_sizes, hsubarray_starts,
+                               MPI_ORDER_C, MPI_DOUBLE, &horiz_type);
       MPI_Type_commit(&horiz_type);
 
       int vsubarray_starts[] = {nhalo, 0, nhalo};
       int vsubarray_sizes[] = {ksize, nhalo, isize};
-      MPI_Type_create_subarray(3, array_sizes, vsubarray_sizes, vsubarray_starts, MPI_ORDER_C, MPI_DOUBLE, &vert_type);
+      MPI_Type_create_subarray(3, array_sizes, vsubarray_sizes, vsubarray_starts,
+                               MPI_ORDER_C, MPI_DOUBLE, &vert_type);
       MPI_Type_commit(&vert_type);
 
       int dsubarray_starts[] = {0, nhalo, nhalo};
       int dsubarray_sizes[] = {nhalo, ksize, isize};
-      MPI_Type_create_subarray(3, array_sizes, dsubarray_sizes, dsubarray_starts, MPI_ORDER_C, MPI_DOUBLE, &depth_type);
+      MPI_Type_create_subarray(3, array_sizes, dsubarray_sizes, dsubarray_starts,
+                               MPI_ORDER_C, MPI_DOUBLE, &depth_type);
       MPI_Type_commit(&depth_type);
    }
 
@@ -327,34 +333,50 @@ void ghostcell_update(double ***x, int nhalo, int corners, struct sizes size, st
    int nfrnt = ngh.frnt;
    int nback = ngh.back;
 
-   int icount, bufsize;
-
    struct timespec tstart_ghostcell;
    cpu_timer_start(&tstart_ghostcell);
 
-   MPI_Request request[4*nhalo];
-   MPI_Status status[4*nhalo];
+   int waitcount = 12, ib1 = 4, ib2 = 8;
+   if (corners) {
+      waitcount=4;
+      ib1 = 0, ib2 = 0;
+   }
 
-   MPI_Irecv(&x[-nhalo][-nhalo][isize],   1, horiz_type, nrght, 1001, MPI_COMM_WORLD, &request[0]);
-   MPI_Isend(&x[-nhalo][-nhalo][0],       1, horiz_type, nleft, 1001, MPI_COMM_WORLD, &request[1]);
+   MPI_Request request[waitcount*nhalo];
+   MPI_Status status[waitcount*nhalo];
 
-   MPI_Irecv(&x[-nhalo][-nhalo][-nhalo],  1, horiz_type, nleft, 1002, MPI_COMM_WORLD, &request[2]);
-   MPI_Isend(&x[-nhalo][-nhalo][isize-1], 1, horiz_type, nrght, 1002, MPI_COMM_WORLD, &request[3]);
-   MPI_Waitall(4, request, status);
+   MPI_Irecv(&x[-nhalo][-nhalo][isize],   1, horiz_type, nrght, 1001,
+             MPI_COMM_WORLD, &request[0]);
+   MPI_Isend(&x[-nhalo][-nhalo][0],       1, horiz_type, nleft, 1001,
+             MPI_COMM_WORLD, &request[1]);
 
-   MPI_Irecv(&x[-nhalo][jsize][-nhalo],   1, vert_type, ntop, 1003, MPI_COMM_WORLD, &request[0]);
-   MPI_Isend(&x[-nhalo][0][-nhalo],       1, vert_type, nbot, 1003, MPI_COMM_WORLD, &request[1]);
+   MPI_Irecv(&x[-nhalo][-nhalo][-nhalo],  1, horiz_type, nleft, 1002,
+             MPI_COMM_WORLD, &request[2]);
+   MPI_Isend(&x[-nhalo][-nhalo][isize-1], 1, horiz_type, nrght, 1002,
+             MPI_COMM_WORLD, &request[3]);
+   if (corners) MPI_Waitall(4, request, status);
 
-   MPI_Irecv(&x[-nhalo][-nhalo][-nhalo],  1, vert_type, nbot, 1004, MPI_COMM_WORLD, &request[2]);
-   MPI_Isend(&x[-nhalo][jsize-1][-nhalo], 1, vert_type, ntop, 1004, MPI_COMM_WORLD, &request[3]);
-   MPI_Waitall(4, request, status);
+   MPI_Irecv(&x[-nhalo][jsize][-nhalo],   1, vert_type, ntop, 1003,
+             MPI_COMM_WORLD, &request[ib1+0]);
+   MPI_Isend(&x[-nhalo][0][-nhalo],       1, vert_type, nbot, 1003,
+             MPI_COMM_WORLD, &request[ib1+1]);
 
-   MPI_Irecv(&x[ksize][-nhalo][-nhalo],   1, depth_type, nback, 1005, MPI_COMM_WORLD, &request[0]);
-   MPI_Isend(&x[0][-nhalo][-nhalo],       1, depth_type, nfrnt, 1005, MPI_COMM_WORLD, &request[1]);
+   MPI_Irecv(&x[-nhalo][-nhalo][-nhalo],  1, vert_type, nbot, 1004,
+             MPI_COMM_WORLD, &request[ib1+2]);
+   MPI_Isend(&x[-nhalo][jsize-1][-nhalo], 1, vert_type, ntop, 1004,
+             MPI_COMM_WORLD, &request[ib1+3]);
+   if (corners) MPI_Waitall(4, request, status);
 
-   MPI_Irecv(&x[-nhalo][-nhalo][-nhalo],  1, depth_type, nfrnt, 1006, MPI_COMM_WORLD, &request[2]);
-   MPI_Isend(&x[ksize-1][-nhalo][-nhalo], 1, depth_type, nback, 1006, MPI_COMM_WORLD, &request[3]);
-   MPI_Waitall(4, request, status);
+   MPI_Irecv(&x[ksize][-nhalo][-nhalo],   1, depth_type, nback, 1005,
+             MPI_COMM_WORLD, &request[ib2+0]);
+   MPI_Isend(&x[0][-nhalo][-nhalo],       1, depth_type, nfrnt, 1005,
+             MPI_COMM_WORLD, &request[ib2+1]);
+
+   MPI_Irecv(&x[-nhalo][-nhalo][-nhalo],  1, depth_type, nfrnt, 1006,
+             MPI_COMM_WORLD, &request[ib2+2]);
+   MPI_Isend(&x[ksize-1][-nhalo][-nhalo], 1, depth_type, nback, 1006,
+             MPI_COMM_WORLD, &request[ib2+3]);
+   MPI_Waitall(waitcount, request, status);
 
    if (do_timing) MPI_Barrier(MPI_COMM_WORLD);
 
