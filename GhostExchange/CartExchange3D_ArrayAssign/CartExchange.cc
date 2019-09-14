@@ -302,8 +302,8 @@ void ghostcell_update(double ***x, int nhalo, int corners, struct sizes size, st
    struct timespec tstart_ghostcell;
    cpu_timer_start(&tstart_ghostcell);
 
-   MPI_Request request[4*nhalo];
-   MPI_Status status[4*nhalo];
+   MPI_Request request[4];
+   MPI_Status status[4];
 
    int jlow=0, jhgh=jsize;
    if (corners) {

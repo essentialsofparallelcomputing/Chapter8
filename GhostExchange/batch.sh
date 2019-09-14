@@ -7,32 +7,32 @@ for (( j=0; j<11; ++j)); do
    for i in GhostExchange_*
    do
       cd $i
-      #mpirun -n 176 --bind-to hwthread --mca btl_base_warn_component_unused 0 ./GhostExchange -x 11 -y 16 -i 20000 -j 20000 -h 1 -t
-      mpirun -n 176 --bind-to hwthread --mca btl_base_warn_component_unused 0 ./GhostExchange -x 11 -y 16 -i 20000 -j 20000 -h 2 -t
-      #mpirun -n 176 --bind-to hwthread --mca btl_base_warn_component_unused 0 ./GhostExchange -x 11 -y 16 -i 20000 -j 20000 -h 2 -t -c
+      #mpirun -n 144 --bind-to hwthread --mca btl_base_warn_component_unused 0 ./GhostExchange -x 11 -y 16 -i 20000 -j 20000 -h 1 -t
+      mpirun -n 144 --bind-to hwthread --mca btl_base_warn_component_unused 0 ./GhostExchange -x 12 -y 12 -i 20000 -j 20000 -h 2 -t
+      #mpirun -n 144 --bind-to hwthread --mca btl_base_warn_component_unused 0 ./GhostExchange -x 11 -y 16 -i 20000 -j 20000 -h 2 -t -c
       cd ..
    done
  
    for i in CartExchange_*
    do
       cd $i
-      #mpirun -n 176 --bind-to hwthread --mca btl_base_warn_component_unused 0 ./CartExchange -x 11 -y 16 -i 20000 -j 20000 -h 1 -t
-      mpirun -n 176 --bind-to hwthread --mca btl_base_warn_component_unused 0 ./CartExchange -x 11 -y 16 -i 20000 -j 20000 -h 2 -t
-      #mpirun -n 176 --bind-to hwthread --mca btl_base_warn_component_unused 0 ./CartExchange -x 11 -y 16 -i 20000 -j 20000 -h 2 -t -c
+      #mpirun -n 144 --bind-to hwthread --mca btl_base_warn_component_unused 0 ./CartExchange -x 11 -y 16 -i 20000 -j 20000 -h 1 -t
+      mpirun -n 144 --bind-to hwthread --mca btl_base_warn_component_unused 0 ./CartExchange -x 12 -y 12 -i 20000 -j 20000 -h 2 -t
+      #mpirun -n 144 --bind-to hwthread --mca btl_base_warn_component_unused 0 ./CartExchange -x 11 -y 16 -i 20000 -j 20000 -h 2 -t -c
       cd ..
    done
 
    for i in GhostExchange3D*
    do
       cd $i
-      mpirun -n 176 --bind-to hwthread --mca btl_base_warn_component_unused 0 ./GhostExchange -x 11 -y 4 -z 4 -i 700 -j 700 -k 700 -h 2 -t -c
+      mpirun -n 144 --bind-to hwthread --mca btl_base_warn_component_unused 0 ./GhostExchange -x 6 -y 4 -z 6 -i 700 -j 700 -k 700 -h 2 -t -c
       cd ..
    done
 
    for i in CartExchange3D*
    do
       cd $i
-      mpirun -n 176 --bind-to hwthread --mca btl_base_warn_component_unused 0 ./CartExchange -x 11 -y 4 -z 4 -i 700 -j 700 -k 700 -h 2 -t -c
+      mpirun -n 144 --bind-to hwthread --mca btl_base_warn_component_unused 0 ./CartExchange -x 6 -y 4 -z 6 -i 700 -j 700 -k 700 -h 2 -t -c
       cd ..
    done
 
