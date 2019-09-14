@@ -112,39 +112,34 @@ int main(int argc, char *argv[])
       int hsubarray_sizes[] = {ksize+2*nhalo, jsize+2*nhalo, nhalo};
       MPI_Type_create_subarray(3, array_sizes, hsubarray_sizes, subarray_starts,
                                MPI_ORDER_C, MPI_DOUBLE, &horiz_type);
-      MPI_Type_commit(&horiz_type);
 
       int vsubarray_sizes[] = {ksize+2*nhalo, nhalo, isize+2*nhalo};
       MPI_Type_create_subarray(3, array_sizes, vsubarray_sizes, subarray_starts,
                                MPI_ORDER_C, MPI_DOUBLE, &vert_type);
-      MPI_Type_commit(&vert_type);
 
       int dsubarray_sizes[] = {nhalo, jsize+2*nhalo, isize+2*nhalo};
       MPI_Type_create_subarray(3, array_sizes, dsubarray_sizes, subarray_starts,
                                MPI_ORDER_C, MPI_DOUBLE, &depth_type);
-      MPI_Type_commit(&depth_type);
-
-
    } else {
       int hsubarray_starts[] = {nhalo,nhalo,0};
       int hsubarray_sizes[] = {ksize, jsize, nhalo};
       MPI_Type_create_subarray(3, array_sizes, hsubarray_sizes, hsubarray_starts,
                                MPI_ORDER_C, MPI_DOUBLE, &horiz_type);
-      MPI_Type_commit(&horiz_type);
 
       int vsubarray_starts[] = {nhalo, 0, nhalo};
       int vsubarray_sizes[] = {ksize, nhalo, isize};
       MPI_Type_create_subarray(3, array_sizes, vsubarray_sizes, vsubarray_starts,
                                MPI_ORDER_C, MPI_DOUBLE, &vert_type);
-      MPI_Type_commit(&vert_type);
 
       int dsubarray_starts[] = {0, nhalo, nhalo};
       int dsubarray_sizes[] = {nhalo, ksize, isize};
       MPI_Type_create_subarray(3, array_sizes, dsubarray_sizes, dsubarray_starts,
                                MPI_ORDER_C, MPI_DOUBLE, &depth_type);
-      MPI_Type_commit(&depth_type);
    }
 
+   MPI_Type_commit(&horiz_type);
+   MPI_Type_commit(&vert_type);
+   MPI_Type_commit(&depth_type);
 
    /* The halo update both updates the ghost cells and the boundary halo cells. To be precise with terminology,
     * the ghost cells only exist for multi-processor runs with MPI. The boundary halo cells are to set boundary
