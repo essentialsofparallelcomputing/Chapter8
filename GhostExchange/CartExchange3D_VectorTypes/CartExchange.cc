@@ -472,29 +472,31 @@ void parse_input_args(int argc, char **argv, int &kmax, int &jmax, int &imax,
       }
    }
 
-   int xcoord = rank%nprocx;
-   int ycoord = (rank/nprocx)%nprocy;
-   int zcoord = rank/(nprocx*nprocy);
+   if (nprocx != 0 && nprocy != 0 && nprocz != 0) {
+      int xcoord = rank%nprocx;
+      int ycoord = (rank/nprocx)%nprocy;
+      int zcoord = rank/(nprocx*nprocy);
 
-   int ibegin = imax *(xcoord  )/nprocx;
-   int iend   = imax *(xcoord+1)/nprocx;
-   int isize  = iend - ibegin;
-   int jbegin = jmax *(ycoord  )/nprocy;
-   int jend   = jmax *(ycoord+1)/nprocy;
-   int jsize  = jend - jbegin;
-   int kbegin = kmax *(ycoord  )/nprocy;
-   int kend   = kmax *(ycoord+1)/nprocy;
-   int ksize  = kend - kbegin;
+      int ibegin = imax *(xcoord  )/nprocx;
+      int iend   = imax *(xcoord+1)/nprocx;
+      int isize  = iend - ibegin;
+      int jbegin = jmax *(ycoord  )/nprocy;
+      int jend   = jmax *(ycoord+1)/nprocy;
+      int jsize  = jend - jbegin;
+      int kbegin = kmax *(ycoord  )/nprocy;
+      int kend   = kmax *(ycoord+1)/nprocy;
+      int ksize  = kend - kbegin;
 
-   int ierr = 0, ierr_global;
-   if (isize < nhalo || jsize < nhalo || ksize < nhalo) {
-      if (rank == 0) printf("Error -- local size of grid is less than the halo size\n");
-      ierr = 1;
-   }
-   MPI_Allreduce(&ierr, &ierr_global, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
-   if (ierr_global > 0) {
-      MPI_Finalize();
-      exit(0);
+      int ierr = 0, ierr_global;
+      if (isize < nhalo || jsize < nhalo || ksize < nhalo) {
+         if (rank == 0) printf("Error -- local size of grid is less than the halo size\n");
+         ierr = 1;
+      }
+      MPI_Allreduce(&ierr, &ierr_global, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
+      if (ierr_global > 0) {
+         MPI_Finalize();
+         exit(0);
+      }
    }
 }
 
@@ -638,7 +640,5 @@ void Cartesian_print(double ***x, int kmax, int jmax, int imax, int nhalo, struc
          }
       }
    }
-   MPI_Finalize();
-   exit(0);
    free(xrow);
 }
