@@ -100,9 +100,6 @@ int main(int argc, char *argv[])
    haloupdate_test(cart_comm, nhalo, corners, jsize, isize, nleft, nrght, nbot, ntop, jmax, imax, nprocy, nprocx,
                    horiz_type, vert_type, sendtypes, recvtypes, sdispls, rdispls, do_timing);
 
-   MPI_Finalize();
-   exit(0);
-
    double** xtmp;
    // This offsets the array addressing so that the real part of the array is from 0,0 to jsize,isize
    double** x    = malloc2D(jsize+2*nhalo, isize+2*nhalo, nhalo, nhalo);
@@ -161,7 +158,7 @@ int main(int argc, char *argv[])
    Cartesian_print(cart_comm, x, jmax, imax, nhalo);
 
    if (rank == 0){
-      printf("CartExchange_VectorTypes Timing is stencil %f boundary condition %f ghost cell %lf total %f\n",
+      printf("CartExchange_Neighbor Timing is stencil %f boundary condition %f ghost cell %lf total %f\n",
              stencil_time,boundarycondition_time,ghostcell_time,total_time);
    }
 

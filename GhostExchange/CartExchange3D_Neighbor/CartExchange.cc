@@ -36,8 +36,9 @@ void boundarycondition_update(double ***x, int nhalo, struct sizes size, struct 
 void ghostcell_update(double ***x, int nhalo, int corners, MPI_Datatype horiz_type, MPI_Datatype vert_type, MPI_Datatype depth_type,
       MPI_Datatype *sendtypes, MPI_Datatype *recvtypes, MPI_Aint *sdispls, MPI_Aint *rdispls, MPI_Comm cart_comm, int do_timing);
 void haloupdate_test(int nhalo, int corners, struct sizes size, struct neighs ngh,
-      int kmax, int jmax, int imax, struct procs nproc, MPI_Datatype *sendtypes, MPI_Datatype *recvtypes,
-      MPI_Aint *sdispls, MPI_Aint *rdispls, int do_timing);
+      int kmax, int jmax, int imax, struct procs nproc, MPI_Datatype horiz_type, MPI_Datatype vert_type, MPI_Datatype depth_type,
+      MPI_Datatype *sendtypes, MPI_Datatype *recvtypes,
+      MPI_Aint *sdispls, MPI_Aint *rdispls, MPI_Comm cart_comm, int do_timing);
 
 double boundarycondition_time=0.0, ghostcell_time=0.0;
 
@@ -65,6 +66,7 @@ int main(int argc, char *argv[])
    int periods[3]={0,0,0};
    int coords[3];
    MPI_Dims_create(nprocs, 3, dims);
+   MPI_Comm cart_comm;
    MPI_Cart_create(MPI_COMM_WORLD, 3, dims, periods, 0, &cart_comm);
    MPI_Cart_coords(cart_comm, rank, 3, coords);
    int xcoord = coords[2];
@@ -111,6 +113,7 @@ int main(int argc, char *argv[])
 
    // Setting up ghost cell communication
    int array_sizes[] = {ksize+2*nhalo, jsize+2*nhalo, isize+2*nhalo};
+   MPI_Datatype horiz_type, vert_type, depth_type;
    if (corners) {
       int subarray_starts[] = {0, 0, 0};
       int hsubarray_sizes[] = {ksize+2*nhalo, jsize+2*nhalo, nhalo};
@@ -170,7 +173,8 @@ int main(int argc, char *argv[])
     * the ghost cells only exist for multi-processor runs with MPI. The boundary halo cells are to set boundary
     * conditions. Halos refer to both the ghost cells and the boundary halo cells.
     */
-   haloupdate_test(nhalo, corners, size, ngh, kmax, jmax, imax, nproc, sendtypes, recvtypes, sdispls, rdispls, do_timing);
+   haloupdate_test(nhalo, corners, size, ngh, kmax, jmax, imax, nproc, horiz_type, vert_type, depth_type,
+                   sendtypes, recvtypes, sdispls, rdispls, cart_comm, do_timing);
 
    double*** xtmp;
    // This offsets the array addressing so that the real part of the array is from 0,0 to jsize,isize
@@ -239,7 +243,7 @@ int main(int argc, char *argv[])
    Cartesian_print(x, kmax, jmax, imax, nhalo, nproc);
 
    if (rank == 0){
-      printf("CartExchange3D_VectorTypes Timing is stencil %f boundary condition %f ghost cell %lf total %f\n",
+      printf("CartExchange3D_Neighbor Timing is stencil %f boundary condition %f ghost cell %lf total %f\n",
              stencil_time,boundarycondition_time,ghostcell_time,total_time);
    }
 
@@ -363,8 +367,9 @@ void ghostcell_update(double ***x, int nhalo, int corners, MPI_Datatype horiz_ty
 }
 
 void haloupdate_test(int nhalo, int corners, struct sizes size, struct neighs ngh,
-      int kmax, int jmax, int imax, struct procs nproc, MPI_Datatype *sendtypes,
-      MPI_Datatype *recvtypes, MPI_Aint *sdispls, MPI_Aint *rdispls, int do_timing)
+      int kmax, int jmax, int imax, struct procs nproc, MPI_Datatype horiz_type, MPI_Datatype vert_type, MPI_Datatype depth_type,
+      MPI_Datatype *sendtypes, MPI_Datatype *recvtypes,
+      MPI_Aint *sdispls, MPI_Aint *rdispls, MPI_Comm cart_comm, int do_timing)
 {
    int rank;
    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
