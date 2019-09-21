@@ -1,35 +1,44 @@
 GhostExchange_ArrayAssign
-Median: 0.595131
-Mean 0.601013Std Dev=0.0167368
+Median: 0.607117
+Mean 0.599385Std Dev=0.026427
 
 GhostExchange_Pack
-Median: 1.149744
-Mean 1.14879Std Dev=0.0224362
+Median: 1.133199
+Mean 1.14094Std Dev=0.0429336
 
 GhostExchange_VectorTypes
-Median: 0.782860
-Mean 0.783919Std Dev=0.0257541
+Median: 0.817255
+Mean 0.816727Std Dev=0.0360446
+
+CartExchange_Neighbor
+Median: 0.879049
+Mean 0.865422Std Dev=0.0540392
 
 CartExchange_Pack
-Median: 0
+Median: 1.383747
+Mean 1.3726Std Dev=0.0308714
 
 CartExchange_VectorTypes
-Median: 0.784324
-Mean 0.788345Std Dev=0.0219755
+Median: 0.867552
+Mean 0.864238Std Dev=0.0276723
 
 GhostExchange3D_ArrayAssign
-Median: 17.435404
-Mean 17.4288Std Dev=0.0588554
+Median: 12.189806
+Mean 12.212Std Dev=0.0497795
 
 GhostExchange3D_VectorTypes
-Median: 15.838957
-Mean 15.8849Std Dev=0.15704
+Median: 9.819723
+Mean 9.83181Std Dev=0.0595902
 
 CartExchange3D_ArrayAssign
-Median: 17.400969
-Mean 17.414Std Dev=0.0673799
+Median: 12.224130
+Mean 12.2349Std Dev=0.0658495
+
+CartExchange3D_Neighbor
+Median: 10.087740
+Mean 10.0949Std Dev=0.0882158
 
 CartExchange3D_VectorTypes
-Median: 15.789779
-Mean 15.804Std Dev=0.22239
+Median: 10.005721
+Mean 10.0254Std Dev=0.0843956
 

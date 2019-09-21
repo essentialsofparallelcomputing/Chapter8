@@ -169,7 +169,7 @@ int main(int argc, char *argv[])
    MPI_Datatype recvtypes[6] = {depth_type, depth_type, vert_type, vert_type, horiz_type, horiz_type};
    // End of ghost cell communication setup
 
-   /GhostExchange3D_VectorTypes/GhostExchange.cc* The halo update both updates the ghost cells and the boundary halo cells. To be precise with terminology,
+   /*GhostExchange3D_VectorTypes/GhostExchange.cc* The halo update both updates the ghost cells and the boundary halo cells. To be precise with terminology,
     * the ghost cells only exist for multi-processor runs with MPI. The boundary halo cells are to set boundary
     * conditions. Halos refer to both the ghost cells and the boundary halo cells.
     */
