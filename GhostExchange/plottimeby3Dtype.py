@@ -37,8 +37,8 @@ plt.bar(x1, CPUtime, width=bar_width, color='#008080', edgecolor='white')
 
 plt.xticks(x1, name)
 
-ax.set_xlabel('3D Neighbor Communication Method',fontsize=18)
-ax.set_ylabel('3D Ghost Exchange Runtime',fontsize=18)
+ax.set_xlabel('3D Neighbor Communication Method',fontsize=16)
+ax.set_ylabel('3D Ghost Exchange Runtime (secs)',fontsize=16)
 
 fig.tight_layout()
 plt.savefig("plottimeby3Dtype.pdf")
