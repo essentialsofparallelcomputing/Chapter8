@@ -71,13 +71,15 @@ int main(int argc, char *argv[])
    int subarray_sizes_x[] = {jnum, nhalo};
    int subarray_horiz_start[] = {jlow, 0};
    MPI_Datatype horiz_type;
-   MPI_Type_create_subarray (2, array_sizes, subarray_sizes_x, subarray_horiz_start, MPI_ORDER_C, MPI_DOUBLE, &horiz_type);
+   MPI_Type_create_subarray (2, array_sizes, subarray_sizes_x, subarray_horiz_start,
+                             MPI_ORDER_C, MPI_DOUBLE, &horiz_type);
    MPI_Type_commit(&horiz_type);
 
    int subarray_sizes_y[] = {nhalo, inum};
    int subarray_vert_start[] = {0, jlow};
    MPI_Datatype vert_type;
-   MPI_Type_create_subarray (2, array_sizes, subarray_sizes_y, subarray_vert_start, MPI_ORDER_C, MPI_DOUBLE, &vert_type);
+   MPI_Type_create_subarray (2, array_sizes, subarray_sizes_y, subarray_vert_start,
+                             MPI_ORDER_C, MPI_DOUBLE, &vert_type);
    MPI_Type_commit(&vert_type);
 
    // displacements are from bottom left corner of memory block in bytes

@@ -79,8 +79,8 @@ int main(int argc, char *argv[])
    int jbegin = jmax *(ycoord  )/nprocy;
    int jend   = jmax *(ycoord+1)/nprocy;
    int jsize  = jend - jbegin;
-   int kbegin = kmax *(ycoord  )/nprocy;
-   int kend   = kmax *(ycoord+1)/nprocy;
+   int kbegin = kmax *(zcoord  )/nprocz;
+   int kend   = kmax *(zcoord+1)/nprocz;
    int ksize  = kend - kbegin;
    //printf("%d:DEBUG -- ibegin %d iend %d isize %d\n",rank,ibegin,iend,isize);
    //printf("%d:DEBUG -- jbegin %d jend %d jsize %d\n",rank,jbegin,jend,jsize);
@@ -597,8 +597,8 @@ void parse_input_args(int argc, char **argv, int &kmax, int &jmax, int &imax,
    int jbegin = jmax *(ycoord  )/nprocy;
    int jend   = jmax *(ycoord+1)/nprocy;
    int jsize  = jend - jbegin;
-   int kbegin = kmax *(ycoord  )/nprocy;
-   int kend   = kmax *(ycoord+1)/nprocy;
+   int kbegin = kmax *(zcoord  )/nprocz;
+   int kend   = kmax *(zcoord+1)/nprocz;
    int ksize  = kend - kbegin;
 
    int ierr = 0, ierr_global;
@@ -658,8 +658,8 @@ void Cartesian_print(double ***x, int kmax, int jmax, int imax, int nhalo, struc
    int jbegin = jmax *(ycoord  )/nprocy;
    int jend   = jmax *(ycoord+1)/nprocy;
    int jsize  = jend - jbegin;
-   int kbegin = kmax *(ycoord  )/nprocy;
-   int kend   = kmax *(ycoord+1)/nprocy;
+   int kbegin = kmax *(zcoord  )/nprocz;
+   int kend   = kmax *(zcoord+1)/nprocz;
    int ksize  = kend - kbegin;
 
    double *xrow = (double *)malloc(isize_total*sizeof(double));

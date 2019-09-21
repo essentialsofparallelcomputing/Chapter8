@@ -86,8 +86,8 @@ int main(int argc, char *argv[])
    int jbegin = jmax *(ycoord  )/nprocy;
    int jend   = jmax *(ycoord+1)/nprocy;
    int jsize  = jend - jbegin;
-   int kbegin = kmax *(ycoord  )/nprocy;
-   int kend   = kmax *(ycoord+1)/nprocy;
+   int kbegin = kmax *(zcoord  )/nprocz;
+   int kend   = kmax *(zcoord+1)/nprocz;
    int ksize  = kend - kbegin;
    //printf("%d:DEBUG -- ibegin %d iend %d isize %d\n",rank,ibegin,iend,isize);
    //printf("%d:DEBUG -- jbegin %d jend %d jsize %d\n",rank,jbegin,jend,jsize);
@@ -169,7 +169,7 @@ int main(int argc, char *argv[])
    MPI_Datatype recvtypes[6] = {depth_type, depth_type, vert_type, vert_type, horiz_type, horiz_type};
    // End of ghost cell communication setup
 
-   /* The halo update both updates the ghost cells and the boundary halo cells. To be precise with terminology,
+   /GhostExchange3D_VectorTypes/GhostExchange.cc* The halo update both updates the ghost cells and the boundary halo cells. To be precise with terminology,
     * the ghost cells only exist for multi-processor runs with MPI. The boundary halo cells are to set boundary
     * conditions. Halos refer to both the ghost cells and the boundary halo cells.
     */
@@ -469,8 +469,8 @@ void parse_input_args(int argc, char **argv, int &kmax, int &jmax, int &imax,
       int jbegin = jmax *(ycoord  )/nprocy;
       int jend   = jmax *(ycoord+1)/nprocy;
       int jsize  = jend - jbegin;
-      int kbegin = kmax *(ycoord  )/nprocy;
-      int kend   = kmax *(ycoord+1)/nprocy;
+      int kbegin = kmax *(zcoord  )/nprocz;
+      int kend   = kmax *(zcoord+1)/nprocz;
       int ksize  = kend - kbegin;
 
       int ierr = 0, ierr_global;
@@ -531,8 +531,8 @@ void Cartesian_print(double ***x, int kmax, int jmax, int imax, int nhalo, struc
    int jbegin = jmax *(ycoord  )/nprocy;
    int jend   = jmax *(ycoord+1)/nprocy;
    int jsize  = jend - jbegin;
-   int kbegin = kmax *(ycoord  )/nprocy;
-   int kend   = kmax *(ycoord+1)/nprocy;
+   int kbegin = kmax *(zcoord  )/nprocz;
+   int kend   = kmax *(zcoord+1)/nprocz;
    int ksize  = kend - kbegin;
 
    double *xrow = (double *)malloc(isize_total*sizeof(double));
