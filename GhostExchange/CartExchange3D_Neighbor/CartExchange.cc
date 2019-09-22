@@ -346,19 +346,23 @@ void ghostcell_update(double ***x, int nhalo, int corners, MPI_Datatype horiz_ty
    if (corners) {
       int counts1[6] = {0, 0, 0, 0, 1, 1};
       MPI_Neighbor_alltoallw(&x[-nhalo][-nhalo][-nhalo], counts1, sdispls, sendtypes,
-                             &x[-nhalo][-nhalo][-nhalo], counts1, rdispls, recvtypes, cart_comm);
+                             &x[-nhalo][-nhalo][-nhalo], counts1, rdispls, recvtypes,
+                             cart_comm);
 
       int counts2[6] = {0, 0, 1, 1, 0, 0};
       MPI_Neighbor_alltoallw(&x[-nhalo][-nhalo][-nhalo], counts2, sdispls, sendtypes,
-                             &x[-nhalo][-nhalo][-nhalo], counts2, rdispls, recvtypes, cart_comm);
+                             &x[-nhalo][-nhalo][-nhalo], counts2, rdispls, recvtypes,
+                             cart_comm);
 
       int counts3[6] = {1, 1, 0, 0, 0, 0};
       MPI_Neighbor_alltoallw(&x[-nhalo][-nhalo][-nhalo], counts3, sdispls, sendtypes,
-                             &x[-nhalo][-nhalo][-nhalo], counts3, rdispls, recvtypes, cart_comm);
+                             &x[-nhalo][-nhalo][-nhalo], counts3, rdispls, recvtypes,
+                             cart_comm);
    } else {
       int counts[6] = {1, 1, 1, 1, 1, 1};
       MPI_Neighbor_alltoallw(&x[-nhalo][-nhalo][-nhalo], counts,  sdispls, sendtypes,
-                             &x[-nhalo][-nhalo][-nhalo], counts,  rdispls, recvtypes, cart_comm);
+                             &x[-nhalo][-nhalo][-nhalo], counts,  rdispls, recvtypes,
+                             cart_comm);
    }
 
    if (do_timing) MPI_Barrier(MPI_COMM_WORLD);
