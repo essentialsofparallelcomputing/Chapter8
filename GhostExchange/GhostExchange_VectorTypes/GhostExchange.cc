@@ -56,8 +56,8 @@ int main(int argc, char *argv[])
    int jlow=0, jhgh=jsize;
    if (corners) {
       if (nbot == MPI_PROC_NULL) jlow = -nhalo;
-      if (ntop  == MPI_PROC_NULL) jhgh = jsize+nhalo;
-   }   
+      if (ntop == MPI_PROC_NULL) jhgh = jsize+nhalo;
+   }
    int jnum = jhgh-jlow;
 
    MPI_Datatype horiz_type;
@@ -306,25 +306,27 @@ void parse_input_args(int argc, char **argv, int &jmax, int &imax, int &nprocy, 
       }
    }
 
-   int xcoord = rank%nprocx;
-   int ycoord = rank/nprocx;
+   if (nprocx != 0 && nprocy != 0) {
+      int xcoord = rank%nprocx;
+      int ycoord = rank/nprocx;
 
-   int ibegin = imax *(xcoord  )/nprocx;
-   int iend   = imax *(xcoord+1)/nprocx;
-   int isize  = iend - ibegin;
-   int jbegin = jmax *(ycoord  )/nprocy;
-   int jend   = jmax *(ycoord+1)/nprocy;
-   int jsize  = jend - jbegin;
+      int ibegin = imax *(xcoord  )/nprocx;
+      int iend   = imax *(xcoord+1)/nprocx;
+      int isize  = iend - ibegin;
+      int jbegin = jmax *(ycoord  )/nprocy;
+      int jend   = jmax *(ycoord+1)/nprocy;
+      int jsize  = jend - jbegin;
 
-   int ierr = 0, ierr_global;
-   if (isize < nhalo || jsize < nhalo) {
-      if (rank == 0) printf("Error -- local size of grid is less than the halo size\n");
-      ierr = 1;
-   }
-   MPI_Allreduce(&ierr, &ierr_global, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
-   if (ierr_global > 0) {
-      MPI_Finalize();
-      exit(0);
+      int ierr = 0, ierr_global;
+      if (isize < nhalo || jsize < nhalo) {
+         if (rank == 0) printf("Error -- local size of grid is less than the halo size\n");
+         ierr = 1;
+      }
+      MPI_Allreduce(&ierr, &ierr_global, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
+      if (ierr_global > 0) {
+         MPI_Finalize();
+         exit(0);
+      }
    }
 }
 

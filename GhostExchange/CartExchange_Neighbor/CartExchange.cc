@@ -60,10 +60,13 @@ int main(int argc, char *argv[])
    int jsize  = jend - jbegin;
 
    // Setting up ghost cell communication
-   int jlow=nhalo, jnum=jsize, ilow=nhalo, inum = isize;
+   int jlow=nhalo, jhgh=jsize+nhalo, ilow=nhalo, inum = isize;
    if (corners) {
-      jlow = 0, ilow = 0, inum = isize+2*nhalo, jnum = jsize+2*nhalo;
+      int ilow = 0, inum = isize+2*nhalo;
+      if (nbot == MPI_PROC_NULL) jlow = 0;
+      if (ntop == MPI_PROC_NULL) jhgh = jsize+2*nhalo;
    }
+   int jnum = jhgh-jlow;
 
    int array_sizes[] = {jsize+2*nhalo, isize+2*nhalo};
 
