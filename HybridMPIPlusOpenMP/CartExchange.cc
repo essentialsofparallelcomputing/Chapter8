@@ -32,9 +32,10 @@ int main(int argc, char *argv[])
    if (rank == 0) {
       #pragma omp parallel
       #pragma omp master
-         printf("Parallel run requesting MPI_THREAD_FUNNELED with %d threads\n",omp_get_num_threads());
+         printf("requesting MPI_THREAD_FUNNELED with %d threads\n",
+                omp_get_num_threads());
       if (provided != MPI_THREAD_FUNNELED){
-         printf("Error: MPI_THREAD_FUNNELED not available in this MPI. Aborting ...\n");
+         printf("Error: MPI_THREAD_FUNNELED not available. Aborting ...\n");
          MPI_Finalize();
          exit(0);
       }
