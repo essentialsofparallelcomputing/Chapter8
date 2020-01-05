@@ -16,7 +16,7 @@ int main(int argc, char **argv)
    MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
    if (nprocs%2 == 1){
       if (rank == 0){
-         printf("Error: SendRecv must be called with an even number of processes\n");
+         printf("Error: Must be called with an even number of processes\n");
       }
       exit(1);
    }
