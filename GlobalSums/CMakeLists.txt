@@ -32,10 +32,7 @@ add_executable(globalsums globalsums.c timer.c timer.h)
 set_target_properties(globalsums PROPERTIES INCLUDE_DIRECTORIES "${MPI_C_INCLUDE_PATH}")
 set_target_properties(globalsums PROPERTIES COMPILE_FLAGS "${MPI_C_COMPILE_FLAGS}")
 set_target_properties(globalsums PROPERTIES LINK_FLAGS "${MPI_C_LINK_FLAGS}")
-target_link_libraries(globalsums PRIVATE "${MPI_C_LIBRARIES}")
-
-# fix for missing math library
-target_link_libraries(globalsums -lm)
+target_link_libraries(globalsums PRIVATE "${MPI_C_LIBRARIES} -lm")
 
 # Cleanup
 add_custom_target(distclean COMMAND rm -rf CMakeCache.txt CMakeFiles
