@@ -27,7 +27,8 @@ find_package(MPI REQUIRED)
 add_executable(DebugPrintout DebugPrintout.c timer.c)
 set_target_properties(DebugPrintout PROPERTIES INCLUDE_DIRECTORIES "${MPI_C_INCLUDE_PATH}")
 set_target_properties(DebugPrintout PROPERTIES COMPILE_FLAGS "${MPI_C_COMPILE_FLAGS}")
-set_target_properties(DebugPrintout PROPERTIES LINK_FLAGS "${MPI_C_LIBRARIES} ${MPI_C_LINK_FLAGS}")
+set_target_properties(DebugPrintout PROPERTIES LINK_FLAGS "${MPI_C_LINK_FLAGS}")
+target_link_libraries(DebugPrintout PRIVATE "${MPI_C_LIBRARIES}")
 
 # Add a test:
 enable_testing()
