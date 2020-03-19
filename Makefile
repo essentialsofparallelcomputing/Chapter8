@@ -2,7 +2,7 @@ All: MinWorkExample Send_Recv SynchronizedTimer FileRead GlobalSums DebugPrintou
 
 MinWorkExample: MinWorkExample/MinWorkExampleMPI
 
-MinWorkExample/MinWorkExample:MPI
+MinWorkExample/MinWorkExampleMPI:
 	cd MinWorkExample; cmake .; make; mpirun -n 2 ./MinWorkExampleMPI
 
 Send_Recv: Send_Recv/SendRecv1

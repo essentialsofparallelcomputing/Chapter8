@@ -2,6 +2,7 @@ FROM ubuntu:18.04 AS builder
 WORKDIR /project
 RUN apt-get update && \
     apt-get install -y cmake git vim gcc g++ wget software-properties-common \
+                       mpich libmpich-dev \
                        openmpi-bin openmpi-doc libopenmpi-dev && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
