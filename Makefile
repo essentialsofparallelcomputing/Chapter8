@@ -22,8 +22,8 @@ FileRead/FileRead:
 
 GlobalSums: GlobalSums/globalsums
 
-GlobalSums/globalgums:
-	cd GlobalSums; cmake .; make; mpirun -n 2 ./DebugPrintout
+GlobalSums/globalsums:
+	cd GlobalSums; cmake .; make; mpirun -n 2 ./globalsums
 
 DebugPrintout: DebugPrintout/DebugPrintout
 
