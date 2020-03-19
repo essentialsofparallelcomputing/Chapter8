@@ -56,13 +56,15 @@ add_executable(StreamTriad StreamTriad.c timer.c timer.h)
 set_target_properties(StreamTriad PROPERTIES INCLUDE_DIRECTORIES "${MPI_C_INCLUDE_PATH}")
 set_target_properties(StreamTriad PROPERTIES COMPILE_FLAGS "${MPI_C_COMPILE_FLAGS}")
 set_target_properties(StreamTriad PROPERTIES COMPILE_FLAGS "${CMAKE_NOVEC_FLAGS}")
-set_target_properties(StreamTriad PROPERTIES LINK_FLAGS "${MPI_C_LIBRARIES} ${MPI_C_LINK_FLAGS}")
+set_target_properties(StreamTriad PROPERTIES LINK_FLAGS "${MPI_C_LINK_FLAGS}")
+target_link_libraries(StreamTriad PRIVATE "${MPI_C_LIBRARIES}")
 
 add_executable(StreamTriadVec StreamTriadVec.c timer.c timer.h)
 set_target_properties(StreamTriadVec PROPERTIES INCLUDE_DIRECTORIES "${MPI_C_INCLUDE_PATH}")
 set_target_properties(StreamTriadVec PROPERTIES COMPILE_FLAGS "${MPI_C_COMPILE_FLAGS}")
 set_target_properties(StreamTriadVec PROPERTIES COMPILE_FLAGS "${CMAKE_VEC_FLAGS}")
-set_target_properties(StreamTriadVec PROPERTIES LINK_FLAGS "${MPI_C_LIBRARIES} ${MPI_C_LINK_FLAGS}")
+set_target_properties(StreamTriadVec PROPERTIES LINK_FLAGS "${MPI_C_LINK_FLAGS}")
+target_link_libraries(StreamTriadVec PRIVATE "${MPI_C_LIBRARIES}")
 
 # Cleanup
 add_custom_target(distclean COMMAND rm -rf CMakeCache.txt CMakeFiles
