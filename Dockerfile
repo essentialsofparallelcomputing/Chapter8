@@ -1,7 +1,7 @@
 FROM ubuntu:18.04 AS builder
 WORKDIR /project
-RUN apt-get update && \
-    apt-get install -y cmake git vim gcc g++ gfortran software-properties-common \
+RUN apt-get update -q && \
+    apt-get install -q -y cmake git vim gcc g++ gfortran software-properties-common \
             mpich libmpich-dev \
             openmpi-bin openmpi-doc libopenmpi-dev && \
     apt-get clean && \
@@ -9,8 +9,8 @@ RUN apt-get update && \
 
 # Installing latest GCC compiler (version 9)
 RUN add-apt-repository ppa:ubuntu-toolchain-r/test
-RUN apt-get update && \
-    apt-get install -y gcc-9 g++-9 gfortran-9 && \
+RUN apt-get update -q && \
+    apt-get install -q -y gcc-9 g++-9 gfortran-9 && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
