@@ -18,7 +18,7 @@ SynchronizedTimer/build/SynchronizedTimer1:
 FileRead: FileRead/build/FileRead
 
 FileRead/build/FileRead:
-	cd FileRead; mkdir build; cd build; cmake ..; make; mpirun -n 2 ./FileRead
+	cd FileRead; mkdir build; cd build; cmake ..; make; cp ../file.in .; mpirun -n 2 ./FileRead
 
 GlobalSums: GlobalSums/build/globalsums
 
