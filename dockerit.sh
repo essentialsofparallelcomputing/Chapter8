@@ -1,3 +1,3 @@
 #!/bin/sh
-docker build -f Dockerfile.Ubuntu20.4
-docker run -it --entrypoint /bin/bash chapter6
+docker build -f Dockerfile.Ubuntu20.04 -t chapter8 .
+docker run -it --entrypoint /bin/bash chapter8
