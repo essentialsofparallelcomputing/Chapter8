@@ -30,10 +30,10 @@ find_package(MPI REQUIRED)
 
 add_executable(GhostExchange GhostExchange.cc timer.c timer.h malloc3D.c malloc3D.h)
 
-set_target_properties(GhostExchange PROPERTIES INCLUDE_DIRECTORIES "${MPI_C_INCLUDE_PATH}")
-set_target_properties(GhostExchange PROPERTIES COMPILE_FLAGS "${MPI_C_COMPILE_FLAGS}")
-set_target_properties(GhostExchange PROPERTIES LINK_FLAGS "${MPI_C_LINK_FLAGS}")
-target_link_libraries(GhostExchange PRIVATE "${MPI_C_LIBRARIES}")
+set_target_properties(GhostExchange PROPERTIES INCLUDE_DIRECTORIES "${MPI_CXX_INCLUDE_PATH}")
+set_target_properties(GhostExchange PROPERTIES COMPILE_FLAGS "${MPI_CXX_COMPILE_FLAGS}")
+set_target_properties(GhostExchange PROPERTIES LINK_FLAGS "${MPI_CXX_LINK_FLAGS}")
+target_link_libraries(GhostExchange PRIVATE "${MPI_CXX_LIBRARIES}")
 
 # Add a test:
 enable_testing()
