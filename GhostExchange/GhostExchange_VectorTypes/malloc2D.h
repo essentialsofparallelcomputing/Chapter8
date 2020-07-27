@@ -1,4 +1,4 @@
-#ifdef _MALLOC2D_H
+#ifndef _MALLOC2D_H
 #define _MALLOC2D_H
 #ifdef __cplusplus
 extern "C" {

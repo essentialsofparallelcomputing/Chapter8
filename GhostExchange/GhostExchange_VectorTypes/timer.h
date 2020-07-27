@@ -1,4 +1,4 @@
-#ifdef _TIMER_H
+#ifndef _TIMER_H
 #define _TIMER_H
 #ifdef __cplusplus
 extern "C" {
