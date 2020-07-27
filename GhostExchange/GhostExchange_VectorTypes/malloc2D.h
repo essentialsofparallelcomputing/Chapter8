@@ -1,3 +1,5 @@
+#ifdef _MALLOC2D_H
+#define _MALLOC2D_H
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -5,4 +7,5 @@ extern "C" {
    void malloc2D_free(double **x, int joffset);
 #ifdef __cplusplus
 }
+#endif
 #endif
