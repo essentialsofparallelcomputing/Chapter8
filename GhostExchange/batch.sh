@@ -5,7 +5,8 @@ set -v
 AVAIL_CPUS=`lscpu |grep '^CPU(s)' |cut -d':' -f2`
 NUM_CPUS=144
 if [ ${AVAIL_CPUS} -lt ${NUM_CPUS} ]; then
-  NUM_CPUS=${AVAIL_CPUS}
+  #NUM_CPUS=${AVAIL_CPUS}
+  NUM_CPUS="${NUM_CPUS} --oversubscribe"
 fi
 
 for j in {1..10}; do
