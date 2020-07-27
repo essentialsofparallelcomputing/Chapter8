@@ -8,7 +8,7 @@ if [ ${AVAIL_CPUS} -lt ${NUM_CPUS} ]; then
   NUM_CPUS=${AVAIL_CPUS}
 fi
 
-for (( j=0; j<11; ++j)); do
+for j in {1..10}; do
 
    for i in GhostExchange_*
    do
