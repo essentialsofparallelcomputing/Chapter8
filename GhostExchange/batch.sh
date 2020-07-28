@@ -2,11 +2,16 @@
 
 set -v
 
-AVAIL_CPUS=`lscpu |grep '^CPU(s)' |cut -d':' -f2`
+AVAIL_CPUS=0
+LSCPU=$(which lscpu)
+if [ -x "${LSCPU}" ]; then
+  AVAIL_CPUS=`lscpu |grep '^CPU(s)' |cut -d':' -f2`
+fi
 NUM_CPUS=144
-if [ ${AVAIL_CPUS} -lt ${NUM_CPUS} ]; then
-  #NUM_CPUS=${AVAIL_CPUS}
-  NUM_CPUS="${NUM_CPUS} --oversubscribe"
+echo ${AVAIL_CPUS} ${NUM_CPUS}
+if [ "${AVAIL_CPUS}" -lt "${NUM_CPUS}" ]; then
+  printf "Not enough processors. Need ${NUM_CPUS}\n"
+  exit 1
 fi
 
 for j in {1..10}; do
