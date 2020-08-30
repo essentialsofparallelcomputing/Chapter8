@@ -230,6 +230,9 @@ int main(int argc, char *argv[])
    MPI_Type_free(&vert_type);
    MPI_Type_free(&depth_type);
 
+   free(x);
+   free(xnew);
+
    MPI_Finalize();
    exit(0);
 }

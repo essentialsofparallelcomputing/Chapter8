@@ -121,6 +121,9 @@ int main(int argc, char *argv[])
              stencil_time,boundarycondition_time,ghostcell_time,total_time);
    }
 
+   free(x);
+   free(xnew);
+
    MPI_Finalize();
    exit(0);
 }
