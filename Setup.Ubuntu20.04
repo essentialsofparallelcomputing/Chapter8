@@ -3,7 +3,9 @@
 # Comment out what you don't need or run line-by-line, manually
 sudo apt-get -qq update && \
 DEBIAN_FRONTEND=noninteractive \
-sudo apt-get -qq install -y cmake make git vim gcc g++ gfortran software-properties-common wget gnupg-agent likwid
+sudo apt-get -qq install -y cmake make git vim gcc g++ gfortran software-properties-common wget gnupg-agent likwid \
+             mpich libmpich-dev \
+             openmpi-bin openmpi-doc libopenmpi-dev
 
 sudo apt-get -qq install -y gcc-10 g++-10 gfortran-10
 

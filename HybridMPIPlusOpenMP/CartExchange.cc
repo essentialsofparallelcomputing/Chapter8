@@ -184,9 +184,6 @@ int main(int argc, char *argv[])
    MPI_Type_free(&horiz_type);
    MPI_Type_free(&vert_type);
 
-   free(x);
-   free(xnew);
-
    MPI_Finalize();
    exit(0);
 }
