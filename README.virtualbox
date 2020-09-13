@@ -31,8 +31,8 @@
 # git clone --recursive https://github.com/essentialsofparallelcomputing/Chapter8.git
 # Run the script Chapter8/README.virtualbox
 
-DEBIAN_FRONTEND=noninteractive
 sudo apt-get -qq update && \
+DEBIAN_FRONTEND=noninteractive \
 sudo apt-get -qq install -y cmake git vim gcc g++ gfortran software-properties-common \
                         mpich libmpich-dev \
                         openmpi-bin openmpi-doc libopenmpi-dev
@@ -50,8 +50,9 @@ sudo update-alternatives --install /usr/bin/gcc       gcc       /usr/bin/gcc-10 
                          --slave   /usr/bin/gfortran  gfortran  /usr/bin/gfortran-10 \
                          --slave   /usr/bin/gcov      gcov      /usr/bin/gcov-10
 
-sudo apt-get clean && \
-sudo rm -rf /var/lib/apt/lists/*
+sudo chmod u+s /usr/bin/update-alternatives
+
+sudo apt-get clean && sudo rm -rf /var/lib/apt/lists/*
 
 # If Software updater prompts, install updated software --> wait ....
 

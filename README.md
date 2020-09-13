@@ -12,7 +12,7 @@ See License.txt for licensing information.
 
 MPI requires either OpenMPI or MPICH
 
-# MinWorkExample (Book: listings 8.1 throught 8.3)
+# MinWorkExample (Book: listings 8.1 through 8.3)
       Demonstrates both a simple makefile and cmake
       Build with either make or cmake
       Run with ./MinWorkExampleMPI

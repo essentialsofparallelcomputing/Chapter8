@@ -72,13 +72,11 @@ int main(int argc, char *argv[])
    int xcoord = coords[2];
    int ycoord = coords[1];
    int zcoord = coords[0];
-   //printf("%d:DEBUG -- xcoord %d ycoord %d zcoord %d\n",rank,coords[2],coords[1],coords[0]);
 
    int nleft, nrght, nbot, ntop, nfrnt, nback;
    MPI_Cart_shift(cart_comm, 2, 1, &nleft, &nrght);
    MPI_Cart_shift(cart_comm, 1, 1, &nbot,  &ntop);
    MPI_Cart_shift(cart_comm, 0, 1, &nfrnt, &nback);
-   //printf("%d:DEBUG -- nleft %d nrght %d nbot %d ntop %d nfrnt %d nback %d\n",rank,nleft,nrght,nbot,ntop,nfrnt,nback);
 
    int ibegin = imax *(xcoord  )/nprocx;
    int iend   = imax *(xcoord+1)/nprocx;
@@ -89,9 +87,6 @@ int main(int argc, char *argv[])
    int kbegin = kmax *(zcoord  )/nprocz;
    int kend   = kmax *(zcoord+1)/nprocz;
    int ksize  = kend - kbegin;
-   //printf("%d:DEBUG -- ibegin %d iend %d isize %d\n",rank,ibegin,iend,isize);
-   //printf("%d:DEBUG -- jbegin %d jend %d jsize %d\n",rank,jbegin,jend,jsize);
-   //printf("%d:DEBUG -- kbegin %d kend %d ksize %d\n",rank,kbegin,kend,ksize);
 
    struct neighs ngh;
    ngh.left = nleft;

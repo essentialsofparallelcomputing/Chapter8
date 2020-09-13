@@ -12,7 +12,7 @@ int main(int argc, char *argv[])
    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
    if (rank == 0){
-      fin = fopen("file.in", "r");
+      fin = fopen("../file.in", "r");
       fseek(fin, 0, SEEK_END);
       input_size = ftell(fin);
       fseek(fin, 0, SEEK_SET);
