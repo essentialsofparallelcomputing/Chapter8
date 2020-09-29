@@ -7,7 +7,7 @@ double **malloc2D(int jmax, int imax, int joffset, int ioffset)
    double **x = (double **)malloc(jmax*sizeof(double *) + jmax*imax*sizeof(double));
 
    // Now assign the start of the block of memory for the 2D array after the row pointers
-   x[0] = (double *)x + jmax + ioffset;
+   x[0] = (double *)(x + jmax + ioffset);
 
    // Last, assign the memory location to point to for each row pointer
    for (int j = 1; j < jmax; j++) {
