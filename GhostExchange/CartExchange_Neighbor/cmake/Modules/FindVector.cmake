@@ -43,14 +43,25 @@
 #
 #       set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${VECTOR_C_FLAGS")
 
+include(CheckCCompilerFlag)
+include(CheckCXXCompilerFlag)
+include(CheckFortranCompilerFlag)
+
 # Set vectorization flags for a few compilers
 if(CMAKE_C_COMPILER_LOADED)
     if ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang") # using Clang
         set(VECTOR_ALIASING_C_FLAGS "${VECTOR_ALIASING_C_FLAGS} -fstrict-aliasing")
-        set(VECTOR_ARCH_C_FLAGS "${VECTOR_ARCH_C_FLAGS} -march=native -mtune=native")
+        if ("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "x86_64")
+           set(VECTOR_ARCH_C_FLAGS "${VECTOR_ARCH_C_FLAGS} -march=native -mtune=native")
+        elseif ("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "ppc64le")
+            set(VECTOR_ARCH_C_FLAGS "${VECTOR_ARCH_C_FLAGS} -mcpu=powerpc64le")
+        elseif ("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "aarch64")
+            set(VECTOR_ARCH_C_FLAGS "${VECTOR_ARCH_C_FLAGS} -march=native -mtune=native")
+        endif ("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "x86_64")
 
         set(VECTOR_OPENMP_SIMD_C_FLAGS "${VECTOR_OPENMP_SIMD_C_FLAGS} -fopenmp-simd")
         set(VECTOR_C_OPTS "${VECTOR_C_OPTS} -fvectorize")
+        set(VECTOR_C_FPOPTS "${VECTOR_C_FPOPTS} -fno-math-errno")
         set(VECTOR_NOVEC_C_OPT "${VECTOR_NOVEC_C_OPT} -fno-vectorize")
         set(VECTOR_C_VERBOSE "${VECTOR_C_VERBOSE} -Rpass=loop-vectorize -Rpass-missed=loop-vectorize -Rpass-analysis=loop-vectorize")
 
@@ -66,10 +77,14 @@ if(CMAKE_C_COMPILER_LOADED)
 
         set(VECTOR_OPENMP_SIMD_C_FLAGS "${VECTOR_OPENMP_SIMD_C_FLAGS} -fopenmp-simd")
         set(VECTOR_C_OPTS "${VECTOR_C_OPTS} -ftree-vectorize")
+        set(VECTOR_C_FPOPTS "${VECTOR_C_FPOPTS} -fno-trapping-math -fno-math-errno")
         if ("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "x86_64")
-            if ("${CMAKE_C_COMPILER_VERSION}" VERSION_GREATER "7.4.0")
+            if ("${CMAKE_C_COMPILER_VERSION}" VERSION_GREATER "7.9.0")
                 set(VECTOR_C_OPTS "${VECTOR_C_OPTS} -mprefer-vector-width=512")
-            endif ("${CMAKE_C_COMPILER_VERSION}" VERSION_GREATER "7.4.0")
+            endif ("${CMAKE_C_COMPILER_VERSION}" VERSION_GREATER "7.9.0")
+            if ("${CMAKE_C_COMPILER_VERSION}" VERSION_LESS "9.0.0")
+                message(STATUS "Use a GCC compiler version 9.0.0 or greater to get effective vectorization")
+            endif ("${CMAKE_C_COMPILER_VERSION}" VERSION_LESS "9.0.0")
         endif ("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "x86_64")
 
         set(VECTOR_NOVEC_C_OPT "${VECTOR_NOVEC_C_OPT} -fno-tree-vectorize")
@@ -80,7 +95,7 @@ if(CMAKE_C_COMPILER_LOADED)
         set(VECTOR_FPMODEL_C_FLAGS "${VECTOR_FPMODEL_C_FLAGS} -fp-model:precise")
 
         set(VECTOR_OPENMP_SIMD_C_FLAGS "${VECTOR_OPENMP_SIMD_C_FLAGS} -qopenmp-simd")
-        set(VECTOR_C_OPTS "${VECTOR_C_OPTS} -xHOST")
+        set(VECTOR_C_OPTS "${VECTOR_C_OPTS} -restrict -xHOST -vecabi=cmdtarget")
         if ("${CMAKE_C_COMPILER_VERSION}" VERSION_GREATER "17.0.4")
             set(VECTOR_C_OPTS "${VECTOR_C_OPTS} -qopt-zmm-usage=high")
         endif ("${CMAKE_C_COMPILER_VERSION}" VERSION_GREATER "17.0.4")
@@ -114,9 +129,9 @@ if(CMAKE_C_COMPILER_LOADED)
         set(VECTOR_C_VERBOSE "${VECTOR_C_VERBOSE} -Qvec-report:2")
 
     elseif (CMAKE_C_COMPILER_ID MATCHES "XL")
-        set(VECTOR_ALIASING_C_FLAGSS "${VECTOR_ALIASING_C_FLAGS} -qalias=restrict")
-        set(VECTOR_FPMODEL_C_FLAGSS "${VECTOR_FPMODEL_C_FLAGS} -qstrict")
-        set(VECTOR_ARCH_C_FLAGSS "${VECTOR_ARCH_C_FLAGS} -qhot -qarch=auto -qtune=auto")
+        set(VECTOR_ALIASING_C_FLAGS "${VECTOR_ALIASING_C_FLAGS} -qalias=restrict")
+        set(VECTOR_FPMODEL_C_FLAGS "${VECTOR_FPMODEL_C_FLAGS} -qstrict")
+        set(VECTOR_ARCH_C_FLAGS "${VECTOR_ARCH_C_FLAGS} -qhot -qarch=auto -qtune=auto")
 
         set(CMAKE_VEC_C_FLAGS "${CMAKE_VEC_FLAGS} -qsimd=auto")
         set(VECTOR_NOVEC_C_OPT "${VECTOR_NOVEC_C_OPT} -qsimd=noauto")
@@ -126,16 +141,23 @@ if(CMAKE_C_COMPILER_LOADED)
 
     elseif (CMAKE_C_COMPILER_ID MATCHES "Cray")
         set(VECTOR_ALIASING_C_FLAGS "${VECTOR_ALIASING_C_FLAGS} -h restrict=a")
-        set(VECTOR_C_OPTS "${VECTOR_C_OPTS} -h vector=3")
+        set(VECTOR_C_OPTS "${VECTOR_C_OPTS} -h vector3")
   
-        set(VECTOR_NOVEC_C_OPT "${VECTOR_NOVEC_C_OPT} -h vector=0")
-       set(VECTOR_C_VERBOSE "${VECTOR_C_VERBOSE} -h msgs -h negmsgs -h list=a")
+        set(VECTOR_NOVEC_C_OPT "${VECTOR_NOVEC_C_OPT} -h vector0")
+        set(VECTOR_C_VERBOSE "${VECTOR_C_VERBOSE} -h msgs -h negmsgs -h list=a")
 
     endif()
 
+    CHECK_C_COMPILER_FLAG("${VECTOR_OPENMP_SIMD_C_FLAGS}" HAVE_OPENMP_SIMD)
+    if (HAVE_OPENMP_SIMD)
+       add_definitions(-D_OPENMP_SIMD)
+    else (HAVE_OPENMP_SIMD)
+       unset(VECTOR_OPENMP_SIMD_C_FLAGS)
+    endif (HAVE_OPENMP_SIMD)
+
     set(VECTOR_BASE_C_FLAGS "${VECTOR_ALIASING_C_FLAGS} ${VECTOR_ARCH_C_FLAGS} ${VECTOR_FPMODEL_C_FLAGS}")
     set(VECTOR_NOVEC_C_FLAGS "${VECTOR_BASE_C_FLAGS} ${VECTOR_NOVEC_C_OPT}")
-    set(VECTOR_C_FLAGS "${VECTOR_BASE_C_FLAGS} ${VECTOR_C_OPTS} ${VECTOR_OPENMP_SIMD_C_FLAGS}")
+    set(VECTOR_C_FLAGS "${VECTOR_BASE_C_FLAGS} ${VECTOR_C_OPTS} ${VECTOR_C_FPOPTS} ${VECTOR_OPENMP_SIMD_C_FLAGS}")
 
     mark_as_advanced(VECTOR_C_FLAGS
                      VECTOR_NOVEC_C_FLAGS
@@ -144,7 +166,8 @@ if(CMAKE_C_COMPILER_LOADED)
                      VECTOR_ARCH_C_FLAGS
                      VECTOR_FPMODEL_C_FLAGS
                      VECTOR_NOVEC_C_OPT
-                     VECTOR_VEC_C_OPTS)
+                     VECTOR_VEC_C_OPTS
+                     VECTOR_VEC_C_FPOPTS)
 
     message(STATUS  "Setting Vector C flags to: ${VECTOR_C_FLAGS}")
     message(STATUS  "Setting Vector C No-Vector flags to: ${VECTOR_NOVEC_C_FLAGS}")
@@ -156,10 +179,17 @@ endif(CMAKE_C_COMPILER_LOADED)
 if(CMAKE_CXX_COMPILER_LOADED)
     if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang") # using Clang
         set(VECTOR_ALIASING_CXX_FLAGS "${VECTOR_ALIASING_CXX_FLAGS} -fstrict-aliasing")
-        set(VECTOR_ARCH_CXX_FLAGS "${VECTOR_ARCH_CXX_FLAGS} -march=native -mtune=native")
+        if ("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "x86_64")
+           set(VECTOR_ARCH_CXX_FLAGS "${VECTOR_ARCH_CXX_FLAGS} -march=native -mtune=native")
+        elseif ("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "ppc64le")
+            set(VECTOR_ARCH_CXX_FLAGS "${VECTOR_ARCH_CXX_FLAGS} -mcpu=powerpc64le")
+        elseif ("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "aarch64")
+            set(VECTOR_ARCH_CXX_FLAGS "${VECTOR_ARCH_CXX_FLAGS} -march=native -mtune=native")
+        endif ("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "x86_64")
 
         set(VECTOR_OPENMP_SIMD_CXX_FLAGS "${VECTOR_OPENMP_SIMD_CXX_FLAGS} -fopenmp-simd")
         set(VECTOR_CXX_OPTS "${VECTOR_CXX_OPTS} -fvectorize")
+        set(VECTOR_CXX_FPOPTS "${VECTOR_CXX_FPOPTS} -fno-math-errno")
         set(VECTOR_NOVEC_CXX_OPT "${VECTOR_NOVEC_CXX_OPT} -fno-vectorize")
         set(VECTOR_CXX_VERBOSE "${VECTOR_CXX_VERBOSE} -Rpass=loop-vectorize -Rpass-missed=loop-vectorize -Rpass-analysis=loop-vectorize")
 
@@ -175,10 +205,14 @@ if(CMAKE_CXX_COMPILER_LOADED)
 
         set(VECTOR_OPENMP_SIMD_CXX_FLAGS "${VECTOR_OPENMP_SIMD_CXX_FLAGS} -fopenmp-simd")
         set(VECTOR_CXX_OPTS "${VECTOR_CXX_OPTS} -ftree-vectorize")
+        set(VECTOR_CXX_FPOPTS "${VECTOR_CXX_FPOPTS} -fno-trapping-math -fno-math-errno")
         if ("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "x86_64")
-            if ("${CMAKE_CXX_COMPILER_VERSION}" VERSION_GREATER "7.4.0")
+            if ("${CMAKE_CXX_COMPILER_VERSION}" VERSION_GREATER "7.9.0")
                 set(VECTOR_CXX_OPTS "${VECTOR_CXX_OPTS} -mprefer-vector-width=512")
-            endif ("${CMAKE_CXX_COMPILER_VERSION}" VERSION_GREATER "7.4.0")
+            endif ("${CMAKE_CXX_COMPILER_VERSION}" VERSION_GREATER "7.9.0")
+            if ("${CMAKE_CXX_COMPILER_VERSION}" VERSION_LESS "9.0.0")
+                message(STATUS "Use a GCC compiler version 9.0.0 or greater to get effective vectorization")
+            endif ("${CMAKE_CXX_COMPILER_VERSION}" VERSION_LESS "9.0.0")
         endif ("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "x86_64")
 
         set(VECTOR_NOVEC_CXX_OPT "${VECTOR_NOVEC_CXX_OPT} -fno-tree-vectorize")
@@ -189,7 +223,7 @@ if(CMAKE_CXX_COMPILER_LOADED)
         set(VECTOR_FPMODEL_CXX_FLAGS "${VECTOR_FPMODEL_CXX_FLAGS} -fp-model:precise")
 
         set(VECTOR_OPENMP_SIMD_CXX_FLAGS "${VECTOR_OPENMP_SIMD_CXX_FLAGS} -qopenmp-simd")
-        set(VECTOR_CXX_OPTS "${VECTOR_CXX_OPTS} -xHOST")
+        set(VECTOR_CXX_OPTS "${VECTOR_CXX_OPTS} -restrict -xHOST -vecabi=cmdtarget")
         if ("${CMAKE_CXX_COMPILER_VERSION}" VERSION_GREATER "17.0.4")
             set(VECTOR_CXX_OPTS "${VECTOR_CXX_OPTS} -qopt-zmm-usage=high")
         endif ("${CMAKE_CXX_COMPILER_VERSION}" VERSION_GREATER "17.0.4")
@@ -218,9 +252,9 @@ if(CMAKE_CXX_COMPILER_LOADED)
         set(VECTOR_CXX_VERBOSE "${VECTOR_CXX_VERBOSE} -Qvec-report:2")
 
     elseif (CMAKE_CXX_COMPILER_ID MATCHES "XL")
-        set(VECTOR_ALIASING_CXX_FLAGSS "${VECTOR_ALIASING_CXX_FLAGS} -qalias=restrict")
-        set(VECTOR_FPMODEL_CXX_FLAGSS "${VECTOR_FPMODEL_CXX_FLAGS} -qstrict")
-        set(VECTOR_ARCH_CXX_FLAGSS "${VECTOR_ARCH_CXX_FLAGS} -qhot -qarch=auto -qtune=auto")
+        set(VECTOR_ALIASING_CXX_FLAGS "${VECTOR_ALIASING_CXX_FLAGS} -qalias=restrict")
+        set(VECTOR_FPMODEL_CXX_FLAGS "${VECTOR_FPMODEL_CXX_FLAGS} -qstrict")
+        set(VECTOR_ARCH_CXX_FLAGS "${VECTOR_ARCH_CXX_FLAGS} -qhot -qarch=auto -qtune=auto")
 
         set(CMAKE_VEC_CXX_FLAGS "${CMAKE_VEC_FLAGS} -qsimd=auto")
         set(VECTOR_NOVEC_CXX_OPT "${VECTOR_NOVEC_CXX_OPT} -qsimd=noauto")
@@ -230,16 +264,23 @@ if(CMAKE_CXX_COMPILER_LOADED)
 
     elseif (CMAKE_CXX_COMPILER_ID MATCHES "Cray")
         set(VECTOR_ALIASING_CXX_FLAGS "${VECTOR_ALIASING_CXX_FLAGS} -h restrict=a")
-        set(VECTOR_CXX_OPTS "${VECTOR_CXX_OPTS} -h vector=3")
+        set(VECTOR_CXX_OPTS "${VECTOR_CXX_OPTS} -h vector3")
   
-        set(VECTOR_NOVEC_CXX_OPT "${VECTOR_NOVEC_CXX_OPT} -h vector=0")
+        set(VECTOR_NOVEC_CXX_OPT "${VECTOR_NOVEC_CXX_OPT} -h vector0")
         set(VECTOR_CXX_VERBOSE "${VECTOR_CXX_VERBOSE} -h msgs -h negmsgs -h list=a")
 
     endif()
 
+    CHECK_CXX_COMPILER_FLAG("${VECTOR_OPENMP_SIMD_CXX_FLAGS}" HAVE_OPENMP_SIMD)
+    if (HAVE_OPENMP_SIMD)
+       add_definitions(-D_OPENMP_SIMD)
+    else (HAVE_OPENMP_SIMD)
+       unset(VECTOR_OPENMP_SIMD_CXX_FLAGS)
+    endif (HAVE_OPENMP_SIMD)
+
     set(VECTOR_BASE_CXX_FLAGS "${VECTOR_ALIASING_CXX_FLAGS} ${VECTOR_ARCH_CXX_FLAGS} ${VECTOR_FPMODEL_CXX_FLAGS}")
     set(VECTOR_NOVEC_CXX_FLAGS "${VECTOR_BASE_CXX_FLAGS} ${VECTOR_NOVEC_CXX_OPT}")
-    set(VECTOR_CXX_FLAGS "${VECTOR_BASE_CXX_FLAGS} ${VECTOR_CXX_OPTS} ${VECTOR_OPENMP_SIMD_CXX_FLAGS}")
+    set(VECTOR_CXX_FLAGS "${VECTOR_BASE_CXX_FLAGS} ${VECTOR_CXX_OPTS} ${VECTOR_CXX_FPOPTS} ${VECTOR_OPENMP_SIMD_CXX_FLAGS}")
 
     mark_as_advanced(VECTOR_CXX_FLAGS
                      VECTOR_NOVEC_CXX_FLAGS
@@ -248,7 +289,8 @@ if(CMAKE_CXX_COMPILER_LOADED)
                      VECTOR_ARCH_CXX_FLAGS
                      VECTOR_FPMODEL_CXX_FLAGS
                      VECTOR_NOVEC_CXX_OPT
-                     VECTOR_VEC_CXX_OPTS)
+                     VECTOR_VEC_CXX_OPTS
+                     VECTOR_VEC_CXX_FPOPTS)
 
    message(STATUS  "Setting Vector CXX flags to: ${VECTOR_CXX_FLAGS}")
    message(STATUS  "Setting Vector CXX No-Vector flags to: ${VECTOR_NOVEC_CXX_FLAGS}")
@@ -260,10 +302,17 @@ endif(CMAKE_CXX_COMPILER_LOADED)
 if(CMAKE_Fortran_COMPILER_LOADED)
     if ("${CMAKE_Fortran_COMPILER_ID}" STREQUAL "Clang") # using Clang
         set(VECTOR_ALIASING_Fortran_FLAGS "${VECTOR_ALIASING_Fortran_FLAGS} -fstrict-aliasing")
-        set(VECTOR_ARCH_Fortran_FLAGS "${VECTOR_ARCH_Fortran_FLAGS} -march=native -mtune=native")
+        if ("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "x86_64")
+           set(VECTOR_ARCH_Fortran_FLAGS "${VECTOR_ARCH_Fortran_FLAGS} -march=native -mtune=native")
+        elseif ("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "ppc64le")
+            set(VECTOR_ARCH_Fortran_FLAGS "${VECTOR_ARCH_Fortran_FLAGS} -mcpu=powerpc64le")
+        elseif ("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "aarch64")
+            set(VECTOR_ARCH_Fortran_FLAGS "${VECTOR_ARCH_Fortran_FLAGS} -march=native -mtune=native")
+        endif ("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "x86_64")
 
         set(VECTOR_OPENMP_SIMD_Fortran_FLAGS "${VECTOR_OPENMP_SIMD_Fortran_FLAGS} -fopenmp-simd")
         set(VECTOR_Fortran_OPTS "${VECTOR_Fortran_OPTS} -fvectorize")
+        set(VECTOR_Fortran_FPOPTS "${VECTOR_Fortran_FPOPTS} -fno-math-errno")
         set(VECTOR_NOVEC_Fortran_OPT "${VECTOR_NOVEC_Fortran_OPT} -fno-vectorize")
         set(VECTOR_Fortran_VERBOSE "${VECTOR_Fortran_VERBOSE} -Rpass=loop-vectorize -Rpass-missed=loop-vectorize -Rpass-analysis=loop-vectorize")
 
@@ -279,10 +328,14 @@ if(CMAKE_Fortran_COMPILER_LOADED)
 
         set(VECTOR_OPENMP_SIMD_Fortran_FLAGS "${VECTOR_OPENMP_SIMD_Fortran_FLAGS} -fopenmp-simd")
         set(VECTOR_Fortran_OPTS "${VECTOR_Fortran_OPTS} -ftree-vectorize")
+        set(VECTOR_Fortran_FPOPTS "${VECTOR_Fortran_FPOPTS} -fno-trapping-math -fno-math-errno")
         if ("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "x86_64")
-            if ("${CMAKE_Fortran_COMPILER_VERSION}" VERSION_GREATER "7.4.0")
+            if ("${CMAKE_Fortran_COMPILER_VERSION}" VERSION_GREATER "7.9.0")
                 set(VECTOR_Fortran_OPTS "${VECTOR_Fortran_OPTS} -mprefer-vector-width=512")
-            endif ("${CMAKE_Fortran_COMPILER_VERSION}" VERSION_GREATER "7.4.0")
+            endif ("${CMAKE_Fortran_COMPILER_VERSION}" VERSION_GREATER "7.9.0")
+            if ("${CMAKE_Fortran_COMPILER_VERSION}" VERSION_LESS "9.0.0")
+                message(STATUS "Use a GCC compiler version 9.0.0 or greater to get effective vectorization")
+            endif ("${CMAKE_Fortran_COMPILER_VERSION}" VERSION_LESS "9.0.0")
         endif ("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "x86_64")
 
         set(VECTOR_NOVEC_Fortran_OPT "${VECTOR_NOVEC_Fortran_OPT} -fno-tree-vectorize")
@@ -293,7 +346,7 @@ if(CMAKE_Fortran_COMPILER_LOADED)
         set(VECTOR_FPMODEL_Fortran_FLAGS "${VECTOR_FPMODEL_Fortran_FLAGS} -fp-model:precise")
 
         set(VECTOR_OPENMP_SIMD_Fortran_FLAGS "${VECTOR_OPENMP_SIMD_Fortran_FLAGS} -qopenmp-simd")
-        set(VECTOR_Fortran_OPTS "${VECTOR_Fortran_OPTS} -xHOST")
+        set(VECTOR_Fortran_OPTS "${VECTOR_Fortran_OPTS} -xHOST -vecabi=cmdtarget")
         if ("${CMAKE_Fortran_COMPILER_VERSION}" VERSION_GREATER "17.0.4")
             set(VECTOR_Fortran_OPTS "${VECTOR_Fortran_OPTS} -qopt-zmm-usage=high")
         endif ("${CMAKE_Fortran_COMPILER_VERSION}" VERSION_GREATER "17.0.4")
@@ -322,9 +375,9 @@ if(CMAKE_Fortran_COMPILER_LOADED)
         set(VECTOR_Fortran_VERBOSE "${VECTOR_Fortran_VERBOSE} -Qvec-report:2")
 
     elseif (CMAKE_Fortran_COMPILER_ID MATCHES "XL")
-        set(VECTOR_ALIASING_Fortran_FLAGSS "${VECTOR_ALIASING_Fortran_FLAGS} -qalias=restrict")
-        set(VECTOR_FPMODEL_Fortran_FLAGSS "${VECTOR_FPMODEL_Fortran_FLAGS} -qstrict")
-        set(VECTOR_ARCH_Fortran_FLAGSS "${VECTOR_ARCH_Fortran_FLAGS} -qhot -qarch=auto -qtune=auto")
+        set(VECTOR_ALIASING_Fortran_FLAGS "${VECTOR_ALIASING_Fortran_FLAGS} -qalias=restrict")
+        set(VECTOR_FPMODEL_Fortran_FLAGS "${VECTOR_FPMODEL_Fortran_FLAGS} -qstrict")
+        set(VECTOR_ARCH_Fortran_FLAGS "${VECTOR_ARCH_Fortran_FLAGS} -qhot -qarch=auto -qtune=auto")
 
         set(CMAKE_VEC_Fortran_FLAGS "${CMAKE_VEC_FLAGS} -qsimd=auto")
         set(VECTOR_NOVEC_Fortran_OPT "${VECTOR_NOVEC_Fortran_OPT} -qsimd=noauto")
@@ -333,18 +386,23 @@ if(CMAKE_Fortran_COMPILER_LOADED)
         set(VECTOR_Fortran_VERBOSE "${VECTOR_Fortran_VERBOSE} -qreport")
 
     elseif (CMAKE_Fortran_COMPILER_ID MATCHES "Cray")
-        set(VECTOR_ALIASING_Fortran_FLAGS "${VECTOR_ALIASING_Fortran_FLAGS} -h restrict=a")
-        set(VECTOR_Fortran_OPTS "${VECTOR_Fortran_OPTS} -h vector=3")
+        set(VECTOR_Fortran_OPTS "${VECTOR_Fortran_OPTS} -h vector3")
   
-       set(VECTOR_NOVEC_Fortran_OPT "${VECTOR_NOVEC_Fortran_OPT} -h vector=0")
+       set(VECTOR_NOVEC_Fortran_OPT "${VECTOR_NOVEC_Fortran_OPT} -h vector0")
        set(VECTOR_Fortran_VERBOSE "${VECTOR_Fortran_VERBOSE} -h msgs -h negmsgs -h list=a")
 
     endif()
 
+    CHECK_FORTRAN_COMPILER_FLAG("${VECTOR_OPENMP_SIMD_Fortran_FLAGS}" HAVE_OPENMP_SIMD)
+    if (HAVE_OPENMP_SIMD)
+       add_definitions(-D_OPENMP_SIMD)
+    else (HAVE_OPENMP_SIMD)
+       unset(VECTOR_OPENMP_SIMD_Fortran_FLAGS)
+    endif (HAVE_OPENMP_SIMD)
 
     set(VECTOR_BASE_Fortran_FLAGS "${VECTOR_ALIASING_Fortran_FLAGS} ${VECTOR_ARCH_Fortran_FLAGS} ${VECTOR_FPMODEL_Fortran_FLAGS}")
     set(VECTOR_NOVEC_Fortran_FLAGS "${VECTOR_BASE_Fortran_FLAGS} ${VECTOR_NOVEC_Fortran_OPT}")
-    set(VECTOR_Fortran_FLAGS "${VECTOR_BASE_Fortran_FLAGS} ${VECTOR_Fortran_OPTS} ${VECTOR_OPENMP_SIMD_Fortran_FLAGS}")
+    set(VECTOR_Fortran_FLAGS "${VECTOR_BASE_Fortran_FLAGS} ${VECTOR_Fortran_OPTS} ${VECTOR_Fortran_FPOPTS} ${VECTOR_OPENMP_SIMD_Fortran_FLAGS}")
 
     mark_as_advanced(VECTOR_Fortran_FLAGS
                      VECTOR_NOVEC_Fortran_FLAGS
@@ -353,7 +411,8 @@ if(CMAKE_Fortran_COMPILER_LOADED)
                      VECTOR_ARCH_Fortran_FLAGS
                      VECTOR_FPMODEL_Fortran_FLAGS
                      VECTOR_NOVEC_Fortran_OPT
-                     VECTOR_VEC_Fortran_OPTS)
+                     VECTOR_VEC_Fortran_OPTS
+                     VECTOR_VEC_Fortran_FPOPTS)
 
     message(STATUS  "Setting Vector Fortran flags to: ${VECTOR_Fortran_FLAGS}")
     message(STATUS  "Setting Vector Fortran No-Vector flags to: ${VECTOR_NOVEC_Fortran_FLAGS}")
