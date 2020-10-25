@@ -59,9 +59,16 @@ SHELL ["/bin/bash", "-c"]
 
 RUN groupadd chapter8 && useradd -m -s /bin/bash -g chapter8 chapter8
 
+RUN usermod -a -G video chapter8
+
 WORKDIR /home/chapter8
 RUN chown -R chapter8:chapter8 /home/chapter8
 USER chapter8
+
+ENV LANG='en_US.UTF-8'
+ENV DISPLAY :0
+ENV NVIDIA_VISIBLE_DEVICES all
+ENV NVIDIA_DRIVER_CAPABILITIES display,graphics,utility
 
 RUN git clone --recursive https://github.com/essentialsofparallelcomputing/Chapter8.git
 
