@@ -54,7 +54,6 @@ RUN update-alternatives \
       --slave   /usr/bin/gcov     gcov     /usr/bin/gcov-10     && \
     chmod u+s /usr/bin/update-alternatives
 
-
 SHELL ["/bin/bash", "-c"]
 
 RUN groupadd chapter8 && useradd -m -s /bin/bash -g chapter8 chapter8
