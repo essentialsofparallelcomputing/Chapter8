@@ -24,7 +24,7 @@ sudo chmod u+s /usr/bin/update-alternatives
 
 sudo apt-get clean && sudo rm -rf /var/lib/apt/lists/*
 
-sudo usermod -a -G video chapter8
+sudo usermod -a -G video ${USER}
 
 make clean
 make
