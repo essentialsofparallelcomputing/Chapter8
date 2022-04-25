@@ -5,16 +5,14 @@ set -v
 for i in GhostExchange*
 do
    cd $i
-   make clean
-   make distclean
+   rm -rf build
    cd ..
 done
 
 for i in CartExchange*
 do
    cd $i
-   make clean
-   make distclean
+   rm -rf build
    cd ..
 done
 

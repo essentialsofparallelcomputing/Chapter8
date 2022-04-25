@@ -179,8 +179,8 @@ int main(int argc, char *argv[])
              stencil_time,boundarycondition_time,ghostcell_time,total_time);
    }
 
-   free(x);
-   free(xnew);
+   malloc3D_free(x, nhalo, nhalo, nhalo);
+   malloc3D_free(xnew, nhalo, nhalo, nhalo);
 
    MPI_Finalize();
    exit(0);

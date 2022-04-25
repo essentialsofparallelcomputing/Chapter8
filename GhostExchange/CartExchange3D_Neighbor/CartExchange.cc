@@ -246,8 +246,8 @@ int main(int argc, char *argv[])
    MPI_Type_free(&vert_type);
    MPI_Type_free(&depth_type);
 
-   free(x);
-   free(xnew);
+   malloc3D_free(x, nhalo, nhalo, nhalo);
+   malloc3D_free(xnew, nhalo, nhalo, nhalo);
 
    MPI_Finalize();
    exit(0);

@@ -121,8 +121,8 @@ int main(int argc, char *argv[])
              stencil_time,boundarycondition_time,ghostcell_time,total_time);
    }
 
-   free(x);
-   free(xnew);
+   malloc2D_free(x, nhalo);
+   malloc2D_free(xnew, nhalo);
 
    MPI_Finalize();
    exit(0);

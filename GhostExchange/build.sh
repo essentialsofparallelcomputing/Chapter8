@@ -5,16 +5,18 @@ set -v
 for i in GhostExchange*
 do
    cd $i
-   cmake -Wno-dev .
+   mkdir build; cd build
+   cmake -Wno-dev ..
    make
-   cd ..
+   cd ../..
 done
 
 for i in CartExchange*
 do
    cd $i
-   cmake -Wno-dev .
+   mkdir build; cd build
+   cmake -Wno-dev ..
    make
-   cd ..
+   cd ../..
 done
 
