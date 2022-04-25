@@ -26,8 +26,8 @@ while True:
 
 fig, ax = plt.subplots()
 
-print name
-print CPUtime
+print(name)
+print(CPUtime)
 
 bar_width = 0.35
 
